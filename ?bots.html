@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mening Telegram Botlarim</title>
+  <link rel="icon" type="image/svg+xml" href="media/favicon.svg">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: #007AFF;
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 40px -15px rgba(0, 122, 255, 0.2);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #007AFF 0%, #00C6FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .grid-bg {
+            background-image: radial-gradient(rgba(0, 122, 255, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+    </style>
+</head>
+<body class="grid-bg min-h-screen">
+
+    <div class="max-w-6xl mx-auto px-6 py-16">
+        <!-- Шапка страницы -->
+        <header class="mb-16 text-center md:text-left">
+            <h1 class="text-5xl md:text-7xl font-bold mb-4 tracking-tight">Telegram <span class="text-gradient">Botlarim</span></h1>
+            <p class="text-gray-400 text-lg max-w-2xl">Mening barcha faol Telegram botlarim ro'yxati va ularning qisqacha tavsifi.</p>
+        </header>
+
+        <!-- Сетка ботов (из скриншота) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Bot: ASikkeeper_bot -->
+            <div class="glass-card p-8 rounded-3xl flex flex-col justify-between border-blue-500/30 shadow-[0_0_20px_rgba(0,122,255,0.1)]">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
+                            <i class="fas fa-wallet text-blue-500 text-2xl"></i>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-widest bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20">Finance</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">ASikkeeper Bot</h3>
+                    <p class="text-blue-400 font-mono text-sm mb-4">@ASikkeeper_bot</p>
+                    <p class="text-gray-400 leading-relaxed mb-8">Oilaviy buxgalter boti. Xarajatlarni hisoblash, budjetni rejalashtirish va pulni tejashda eng yaqin yordamchingiz.</p>
+                </div>
+                <a href="https://t.me/ASikkeeper_bot" target="_blank" class="inline-flex items-center justify-center w-full py-4 bg-white text-black font-bold rounded-2xl hover:bg-blue-600 hover:text-white transition-colors duration-300 group">
+                    Botni ochish <i class="fas fa-external-link-alt ml-2 text-sm opacity-50 group-hover:opacity-100"></i>
+                </a>
+            </div>
+
+            <!-- Bot: SocialMediaLauncherBot -->
+            <div class="glass-card p-8 rounded-3xl flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="w-14 h-14 bg-purple-600/10 rounded-2xl flex items-center justify-center border border-purple-500/20">
+                            <i class="fas fa-rocket text-purple-500 text-2xl"></i>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-widest bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full border border-purple-500/20">Automation</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Social Media Launcher</h3>
+                    <p class="text-purple-400 font-mono text-sm mb-4">@SocialMediaLauncherBot</p>
+                    <p class="text-gray-400 leading-relaxed mb-8">Ijtimoiy tarmoqlar uchun avtomatlashtirilgan vosita. Kontentni boshqarish va statisika bilan ishlash uchun qulay.</p>
+                </div>
+                <a href="https://t.me/SocialMediaLauncherBot" target="_blank" class="inline-flex items-center justify-center w-full py-4 bg-white text-black font-bold rounded-2xl hover:bg-purple-600 hover:text-white transition-colors duration-300 group">
+                    Botni ochish <i class="fas fa-external-link-alt ml-2 text-sm opacity-50 group-hover:opacity-100"></i>
+                </a>
+            </div>
+
+            <!-- Bot: HowToDriveBot -->
+            <div class="glass-card p-8 rounded-3xl flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="w-14 h-14 bg-orange-600/10 rounded-2xl flex items-center justify-center border border-orange-500/20">
+                            <i class="fas fa-car text-orange-500 text-2xl"></i>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-widest bg-orange-500/10 text-orange-400 px-3 py-1 rounded-full border border-orange-500/20">Education</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">How To Drive</h3>
+                    <p class="text-orange-400 font-mono text-sm mb-4">@HowToDriveBot</p>
+                    <p class="text-gray-400 leading-relaxed mb-8">Avtomobil boshqarishni o'rganayotganlar uchun qo'llanmalar, testlar va kerakli ma'lumotlar to'plami.</p>
+                </div>
+                <a href="https://t.me/HowToDriveBot" target="_blank" class="inline-flex items-center justify-center w-full py-4 bg-white text-black font-bold rounded-2xl hover:bg-orange-600 hover:text-white transition-colors duration-300 group">
+                    Botni ochish <i class="fas fa-external-link-alt ml-2 text-sm opacity-50 group-hover:opacity-100"></i>
+                </a>
+            </div>
+
+            <!-- Bot: MoonEvolutionBot -->
+            <div class="glass-card p-8 rounded-3xl flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="w-14 h-14 bg-indigo-600/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                            <i class="fas fa-moon text-indigo-400 text-2xl"></i>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-widest bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full border border-indigo-500/20">Project</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Moon Evolution</h3>
+                    <p class="text-indigo-400 font-mono text-sm mb-4">@MoonEvolutionBot</p>
+                    <p class="text-gray-400 leading-relaxed mb-8">Kreativ loyiha boti. Tizim evolutsiyasini kuzatish va interaktiv funksiyalardan foydalanish imkoniyati.</p>
+                </div>
+                <a href="https://t.me/MoonEvolutionBot" target="_blank" class="inline-flex items-center justify-center w-full py-4 bg-white text-black font-bold rounded-2xl hover:bg-indigo-600 hover:text-white transition-colors duration-300 group">
+                    Botni ochish <i class="fas fa-external-link-alt ml-2 text-sm opacity-50 group-hover:opacity-100"></i>
+                </a>
+            </div>
+
+        </div>
+
+        <footer class="mt-20 text-center text-gray-600 text-sm">
+            <p>© 2026 Jafar | Telegram Botlar To'plami</p>
+        </footer>
+    </div>
+
+</body>
+</html>
