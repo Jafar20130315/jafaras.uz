@@ -1,9 +1,531 @@
-<!DOCTYPE HTML>
-<html>
-  <head>
-    <title>Set up</title>
-  </head>
-  <body>
-    <h1>Welcome!</h1>
-  </body>
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jafar | Portfolio</title>
+    
+    <!-- Подключение Tailwind CSS для быстрой стилизации -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Подключение FontAwesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Подключение Three.js (ИСПРАВЛЕНО: ссылка на .js файл) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Настройка Tailwind конфигурации для кастомных цветов -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#007AFF', // MacOS Blue style
+                        secondary: '#5856D6',
+                        dark: '#050505',
+                        card: 'rgba(20, 20, 30, 0.6)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Импорт шрифта */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        body {
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            cursor: none; /* Скрываем стандартный курсор */
+        }
+
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #007AFF, #5856D6);
+            border-radius: 4px;
+        }
+
+        /* Canvas для Three.js на фоне */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Кастомный курсор */
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            z-index: 9999;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+        }
+        
+        /* Рисуем стрелку курсора CSS-ом, чтобы было похоже на MacOS Black */
+        .cursor-arrow {
+            width: 0; 
+            height: 0; 
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 20px solid black;
+            transform: rotate(-25deg);
+            filter: drop-shadow(0 0 1px white) drop-shadow(0 0 2px white); /* Белая обводка для видимости на черном */
+        }
+
+        /* Эффект Glassmorphism для карточек */
+        .glass-card {
+            background: rgba(20, 20, 20, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 122, 255, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0, 122, 255, 0.3);
+        }
+
+        /* Градиентный текст */
+        .text-gradient {
+            background: linear-gradient(to right, #007AFF, #00C6FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Анимация появления при скролле */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Timeline styles */
+        .timeline-line {
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #007AFF, #5856D6, transparent);
+        }
+        
+        @media (min-width: 768px) {
+            .timeline-line {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Three.js Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Custom Cursor Element -->
+    <div class="custom-cursor" id="cursor">
+        <!-- SVG иконка курсора MacOS style (черный с белой обводкой) -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.5 3.2L16.8 20.5L10.5 20.5L5.5 24L5.5 3.2Z" fill="black" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 left-0 p-4 transition-all duration-300" id="navbar">
+        <div class="max-w-6xl mx-auto flex justify-between items-center glass-card rounded-full px-6 py-3">
+            <div class="text-xl font-bold tracking-tighter">JAFAR<span class="text-blue-500">.</span></div>
+            <ul class="flex space-x-6 text-sm font-medium">
+                <li><a href="#about" class="hover:text-blue-400 transition">Men haqimda</a></li>
+                <li><a href="#roadmap" class="hover:text-blue-400 transition">Maqsadlar</a></li>
+                <li><a href="#projects" class="hover:text-blue-400 transition">Loyihalar</a></li>
+                <li><a href="#contact" class="hover:text-blue-400 transition">Aloqa</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="h-screen flex items-center justify-center relative overflow-hidden text-center px-4">
+        <div class="z-10 reveal">
+            <h2 class="text-blue-500 font-medium tracking-widest mb-4 uppercase text-sm">Portfolio</h2>
+            <h1 class="text-6xl md:text-8xl font-bold mb-6 tracking-tight">Men <span class="text-gradient">Jafar</span></h1>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+                Kuchli Developer bo'lmoqchi bo'lgan odam.
+            </p>
+            <div class="flex justify-center gap-4">
+                <a href="#contact" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-medium transition duration-300 shadow-lg shadow-blue-500/30">
+                    Aloqa
+                </a>
+                <a href="#projects" class="glass-card px-8 py-3 rounded-full font-medium hover:bg-white/10 transition duration-300">
+                    Loyihalarim
+                </a>
+            </div>
+        </div>
+        
+        <!-- Декоративные элементы -->
+        <div class="absolute bottom-10 animate-bounce">
+            <i class="fas fa-chevron-down text-gray-600"></i>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center reveal"><span class="text-blue-500">01.</span> Men haqimda</h2>
+            <div class="glass-card p-8 md:p-12 rounded-2xl reveal">
+                <p class="text-lg text-gray-300 leading-relaxed">
+                    Assalomu alaykum! Men Jafar, veb-dasturlashga qiziqadigan yosh mutaxassisman. 
+                    Hozirda men frontend texnologiyalarini o'rganish bosqichidaman va kelajakda kuchli dasturchi bo'lib katta korporatsiya yaratishni maqsad qilganman. 
+                    Mening maqsadim — odamlarga foyda keltiradigan sifatli va xavfsiz mahsulotlar yaratish.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline / To-Do List Section -->
+    <section id="roadmap" class="py-20 px-4 bg-white/5">
+        <div class="max-w-4xl mx-auto relative">
+            <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center reveal"><span class="text-blue-500">02.</span> Mening Yo'l Xaritam</h2>
+            
+            <!-- Вертикальная линия -->
+            <div class="timeline-line"></div>
+
+            <!-- 2024 -->
+            <div class="relative mb-12 md:mb-20 reveal">
+                <div class="md:flex items-center justify-between w-full">
+                    <div class="order-1 md:w-5/12 text-right pr-8 hidden md:block">
+                        <h3 class="text-2xl font-bold text-white">2024</h3>
+                    </div>
+                    <div class="z-20 flex items-center order-1 bg-blue-600 shadow-xl w-8 h-8 rounded-full absolute left-0 md:left-1/2 transform md:-translate-x-1/2 ml-3 md:ml-0 border-4 border-black">
+                        <i class="fas fa-check text-xs text-white mx-auto"></i>
+                    </div>
+                    <div class="order-1 md:w-5/12 pl-12 md:pl-8">
+                        <div class="glass-card p-6 rounded-xl border-l-4 border-green-500">
+                            <span class="md:hidden text-blue-400 font-bold mb-2 block">2024</span>
+                            <h4 class="font-bold text-lg mb-2">Sayt yaratish boshlanishi</h4>
+                            <p class="text-gray-400 text-sm">Konstruktor yordamida o'zimning birinchi saytimni yaratdim.</p>
+                            <span class="inline-block mt-3 px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">Bajarildi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2025 -->
+            <div class="relative mb-12 md:mb-20 reveal">
+                <div class="md:flex items-center justify-between w-full">
+                    <div class="order-1 md:w-5/12 text-right pr-8 md:text-left md:pl-8 md:pr-0 md:order-2 hidden md:block">
+                         <h3 class="text-2xl font-bold text-white">2025</h3>
+                    </div>
+                    <div class="z-20 flex items-center order-1 bg-blue-600 shadow-xl w-8 h-8 rounded-full absolute left-0 md:left-1/2 transform md:-translate-x-1/2 ml-3 md:ml-0 border-4 border-black">
+                        <i class="fas fa-check text-xs text-white mx-auto"></i>
+                    </div>
+                    <div class="order-1 md:w-5/12 pl-12 md:pr-8 md:pl-0 md:text-right">
+                        <div class="glass-card p-6 rounded-xl border-l-4 border-green-500 md:border-l-0 md:border-r-4">
+                            <span class="md:hidden text-blue-400 font-bold mb-2 block">2025</span>
+                            <h4 class="font-bold text-lg mb-2">Domen va HTML</h4>
+                            <p class="text-gray-400 text-sm">Birinchi saytim uchun domen sotib oldim va stilini yaxshiladim. HTML o'rganishni boshladim.</p>
+                            <span class="inline-block mt-3 px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">Bajarildi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2026 -->
+            <div class="relative mb-12 md:mb-20 reveal">
+                <div class="md:flex items-center justify-between w-full">
+                    <div class="order-1 md:w-5/12 text-right pr-8 hidden md:block">
+                        <h3 class="text-2xl font-bold text-white">2026</h3>
+                    </div>
+                    <div class="z-20 flex items-center order-1 bg-blue-600 shadow-xl w-8 h-8 rounded-full absolute left-0 md:left-1/2 transform md:-translate-x-1/2 ml-3 md:ml-0 border-4 border-black">
+                        <i class="fas fa-check text-xs text-white mx-auto"></i>
+                    </div>
+                    <div class="order-1 md:w-5/12 pl-12 md:pl-8">
+                        <div class="glass-card p-6 rounded-xl border-l-4 border-green-500">
+                            <span class="md:hidden text-blue-400 font-bold mb-2 block">2026</span>
+                            <h4 class="font-bold text-lg mb-2">CSS da tushuncha</h4>
+                            <p class="text-gray-400 text-sm">CSS stilizatsiyasini o'rganish uchun tushuncha oldim.</p>
+                            <span class="inline-block mt-3 px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">Bajarildi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2027 -->
+            <div class="relative mb-12 md:mb-20 reveal">
+                <div class="md:flex items-center justify-between w-full">
+                    <div class="order-1 md:w-5/12 text-right pr-8 md:text-left md:pl-8 md:pr-0 md:order-2 hidden md:block">
+                        <h3 class="text-2xl font-bold text-white">2027</h3>
+                    </div>
+                    <div class="z-20 flex items-center order-1 bg-gray-700 shadow-xl w-8 h-8 rounded-full absolute left-0 md:left-1/2 transform md:-translate-x-1/2 ml-3 md:ml-0 border-4 border-black">
+                        <i class="fas fa-hourglass-start text-xs text-gray-400 mx-auto"></i>
+                    </div>
+                    <div class="order-1 md:w-5/12 pl-12 md:pr-8 md:pl-0 md:text-right">
+                        <div class="glass-card p-6 rounded-xl border-l-4 border-gray-600 md:border-l-0 md:border-r-4">
+                            <span class="md:hidden text-blue-400 font-bold mb-2 block">2027</span>
+                            <h4 class="font-bold text-lg mb-2">Backendga o'tish</h4>
+                            <p class="text-gray-400 text-sm">Frontendni to'liq tugatish va Backend texnologiyalariga kirishish.</p>
+                            <span class="inline-block mt-3 px-3 py-1 bg-gray-700 text-gray-300 text-xs rounded-full">Rejalashtirilgan</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2028 -->
+            <div class="relative reveal">
+                <div class="md:flex items-center justify-between w-full">
+                    <div class="order-1 md:w-5/12 text-right pr-8 hidden md:block">
+                        <h3 class="text-2xl font-bold text-white">2028</h3>
+                    </div>
+                    <div class="z-20 flex items-center order-1 bg-gray-700 shadow-xl w-8 h-8 rounded-full absolute left-0 md:left-1/2 transform md:-translate-x-1/2 ml-3 md:ml-0 border-4 border-black">
+                        <i class="fas fa-hourglass-start text-xs text-gray-400 mx-auto"></i>
+                    </div>
+                    <div class="order-1 md:w-5/12 pl-12 md:pl-8">
+                        <div class="glass-card p-6 rounded-xl border-l-4 border-gray-600">
+                            <span class="md:hidden text-blue-400 font-bold mb-2 block">2028</span>
+                            <h4 class="font-bold text-lg mb-2">Katta Maqsadlar</h4>
+                            <p class="text-gray-400 text-sm">IELTS dan yuqori ball olish, nufuzli universitetga kirish va Backend kursini tugatish.</p>
+                            <span class="inline-block mt-3 px-3 py-1 bg-gray-700 text-gray-300 text-xs rounded-full">Rejalashtirilgan</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-20 px-4">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center reveal"><span class="text-blue-500">03.</span> Loyihalarim</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Project 1 -->
+                <div class="glass-card p-8 rounded-2xl relative overflow-hidden group reveal">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                        <i class="fas fa-globe text-9xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Mening birinchi saytim</h3>
+                    <div class="text-blue-400 text-sm mb-4">Web Development</div>
+                    <p class="text-gray-400 mb-6">Prank-as.site — mening HTML va CSS ko'nikmalarimni sinash uchun yaratilgan ilk loyiham.</p>
+                    <a href="https://prank-as.site" target="_blank" class="inline-flex items-center text-white hover:text-blue-400 font-semibold transition">
+                        Saytga o'tish <i class="fas fa-external-link-alt ml-2"></i>
+                    </a>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="glass-card p-8 rounded-2xl relative overflow-hidden group reveal">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                        <i class="fab fa-telegram text-9xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Telegram Botlar</h3>
+                    <div class="text-blue-400 text-sm mb-4">Automation / Python</div>
+                    <p class="text-gray-400 mb-6">10 dan ortiq turli funktsiyaga ega Telegram botlar to'plami. Avtomatlashtirish va foydali vositalar.</p>
+                    <a href="/?bots" class="inline-flex items-center text-white hover:text-blue-400 font-semibold transition">
+                        Botlarni ko'rish <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 px-4 mb-20">
+        <div class="max-w-3xl mx-auto text-center reveal">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6"><span class="text-blue-500">04.</span> Men bilan bog'lanish</h2>
+            <p class="text-xl text-gray-400 mb-10">
+                Ish bo'yicha takliflar uchun aloqadaman.
+            </p>
+            
+            <!-- Phone Button -->
+            <a href="tel:+998905010315" class="inline-flex items-center bg-white text-black px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-500 hover:text-white transition transform hover:scale-105 duration-300 mb-12">
+                <i class="fas fa-phone-alt mr-3"></i> Qo'ng'iroq qilish
+            </a>
+
+            <!-- Social Links -->
+            <div class="flex justify-center space-x-8">
+                <a href="https://x.com/abuasramwxish" target="_blank" class="text-3xl text-gray-400 hover:text-white transition transform hover:-translate-y-2">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://github.com/Jafar20130315" target="_blank" class="text-3xl text-gray-400 hover:text-white transition transform hover:-translate-y-2">
+                    <i class="fab fa-github"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 text-gray-600 text-sm glass-card border-t border-gray-800">
+        <p>Jafar © 2026</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // === Three.js Background Animation ===
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.querySelector('#bg-canvas'),
+            alpha: true, // Transparent background so CSS color shows
+            antialias: true
+        });
+
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.setZ(30);
+
+        // Create Particles (Stars)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 2000; // Количество частиц
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            // Random positions spread out
+            posArray[i] = (Math.random() - 0.5) * 100;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        // Material for particles
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.15,
+            color: 0x007AFF, // Blue tint
+            transparent: true,
+            opacity: 0.8,
+        });
+
+        // Mesh
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        // Interaction Variables
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
+
+        // Mouse Move Event
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - windowHalfX);
+            mouseY = (event.clientY - windowHalfY);
+        });
+
+        // Scroll Event for Phone/Desktop
+        let scrollY = 0;
+        window.addEventListener('scroll', () => {
+            scrollY = window.scrollY;
+        });
+
+        // Animation Loop
+        const clock = new THREE.Clock();
+
+        function animate() {
+            targetX = mouseX * 0.001;
+            targetY = mouseY * 0.001;
+
+            const elapsedTime = clock.getElapsedTime();
+
+            // Automatic gentle rotation
+            particlesMesh.rotation.y = elapsedTime * 0.05;
+            particlesMesh.rotation.x = elapsedTime * 0.02;
+
+            // React to mouse movement (smooth interpolation)
+            particlesMesh.rotation.y += 0.05 * (targetX - particlesMesh.rotation.y);
+            particlesMesh.rotation.x += 0.05 * (targetY - particlesMesh.rotation.x);
+
+            // React to scroll (move camera forward/backward or rotate)
+            // On phones this creates a nice effect when scrolling down
+            camera.position.z = 30 + scrollY * 0.01; 
+            particlesMesh.rotation.z = scrollY * 0.0005;
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+
+        // === Custom Cursor Logic ===
+        const cursor = document.getElementById('cursor');
+        
+        // Only activate custom cursor on non-touch devices to avoid issues on mobile
+        if (matchMedia('(pointer:fine)').matches) {
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+            
+            // Add hover effect for links
+            const links = document.querySelectorAll('a, button');
+            links.forEach(link => {
+                link.addEventListener('mouseenter', () => {
+                    cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                });
+                link.addEventListener('mouseleave', () => {
+                    cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+                });
+            });
+        } else {
+            // Hide custom cursor on mobile, show default
+            cursor.style.display = 'none';
+            document.body.style.cursor = 'auto';
+        }
+
+
+        // === Scroll Reveal Animation ===
+        const revealElements = document.querySelectorAll('.reveal');
+
+        function reveal() {
+            for (let i = 0; i < revealElements.length; i++) {
+                let windowHeight = window.innerHeight;
+                let elementTop = revealElements[i].getBoundingClientRect().top;
+                let elementVisible = 150;
+
+                if (elementTop < windowHeight - elementVisible) {
+                    revealElements[i].classList.add("active");
+                }
+            }
+        }
+
+        window.addEventListener("scroll", reveal);
+        // Trigger once on load
+        reveal();
+
+    </script>
+</body>
 </html>
