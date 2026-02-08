@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ushbu sahifa topilmadi 404</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .glitch {
+            font-size: 15rem;
+            font-weight: 900;
+            position: relative;
+            text-shadow: 0.05em 0 0 rgba(0, 122, 255, 0.75),
+                         -0.025em -0.05em 0 rgba(88, 86, 214, 0.75),
+                         0.025em 0.05em 0 rgba(0, 198, 255, 0.75);
+            animation: glitch 500ms infinite;
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 0.05em 0 0 rgba(0, 122, 255, 0.75), -0.05em -0.025em 0 rgba(88, 86, 214, 0.75), -0.025em 0.05em 0 rgba(0, 198, 255, 0.75); }
+            14% { text-shadow: 0.05em 0 0 rgba(0, 122, 255, 0.75), -0.05em -0.025em 0 rgba(88, 86, 214, 0.75), -0.025em 0.05em 0 rgba(0, 198, 255, 0.75); }
+            15% { text-shadow: -0.05em -0.025em 0 rgba(0, 122, 255, 0.75), 0.025em 0.025em 0 rgba(88, 86, 214, 0.75), -0.05em -0.05em 0 rgba(0, 198, 255, 0.75); }
+            49% { text-shadow: -0.05em -0.025em 0 rgba(0, 122, 255, 0.75), 0.025em 0.025em 0 rgba(88, 86, 214, 0.75), -0.05em -0.05em 0 rgba(0, 198, 255, 0.75); }
+            50% { text-shadow: 0.025em 0.05em 0 rgba(0, 122, 255, 0.75), 0.05em 0 0 rgba(88, 86, 214, 0.75), 0 -0.05em 0 rgba(0, 198, 255, 0.75); }
+            99% { text-shadow: 0.025em 0.05em 0 rgba(0, 122, 255, 0.75), 0.05em 0 0 rgba(88, 86, 214, 0.75), 0 -0.05em 0 rgba(0, 198, 255, 0.75); }
+            100% { text-shadow: -0.025em 0 0 rgba(0, 122, 255, 0.75), -0.025em -0.025em 0 rgba(88, 86, 214, 0.75), -0.025em -0.05em 0 rgba(0, 198, 255, 0.75); }
+        }
+
+        .glass-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 2rem;
+            text-align: center;
+            max-width: 500px;
+            z-index: 10;
+        }
+
+        .bg-glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 122, 255, 0.2) 0%, transparent 70%);
+            filter: blur(50px);
+            z-index: 1;
+        }
+
+        .button-hover {
+            transition: all 0.3s ease;
+        }
+
+        .button-hover:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 122, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+
+    <div class="glass-container">
+        <div class="glitch">404</div>
+        <h1 class="text-2xl font-bold mb-4">Ushbu sahifa topilmadi</h1>
+        <p class="text-gray-400 mb-8 leading-relaxed">
+            Ushbu sahifa o'chirilgan yoki umuman yo'q.
+            Asosiy sahifaga <span id="timer" class="text-blue-500 font-bold">10</span> soniyadan so'ng yo'naltirilasiz.
+        </p>
+        
+        <div class="flex flex-col gap-3">
+            <a href="index.html" class="button-hover bg-blue-600 text-white font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-2">
+                <i class="fas fa-home"></i> Asosiy sahifa
+            </a>
+            <button onclick="history.back()" class="button-hover bg-white/5 hover:bg-white/10 text-white font-medium py-3 px-8 rounded-xl border border-white/10">
+                Orqaga
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Таймер обратного отсчета
+        let timeLeft = 10;
+        const timerElement = document.getElementById('timer');
+
+        const countdown = setInterval(() => {
+            timeLeft--;
+            timerElement.textContent = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+
+        // Интерактивное свечение за мышкой
+        document.addEventListener('mousemove', (e) => {
+            const glow = document.querySelector('.bg-glow');
+            glow.style.left = (e.clientX - 200) + 'px';
+            glow.style.top = (e.clientY - 200) + 'px';
+        });
+    </script>
+</body>
+</html>
