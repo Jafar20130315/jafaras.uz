@@ -21,15 +21,30 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
+
         @media (pointer: fine) {
-  html, body,
-  a, button,
-  input, textarea, select, label,
-  [role="button"], [type="button"], [type="submit"] {
-    cursor: none !important;
-  }
-}
+          html, body,
+          a, button,
+          input, textarea, select, label,
+          [role="button"], [type="button"], [type="submit"] {
+            cursor: none !important;
+          }
+        }
+
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            z-index: 9999;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease, opacity 0.15s ease;
+            opacity: 1;
+        }
 
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
@@ -59,6 +74,14 @@
     </style>
 </head>
 <body class="grid-bg min-h-screen">
+
+    <!-- Custom Cursor Element -->
+    <div class="custom-cursor" id="cursor">
+        <!-- MacOS style cursor (black + white stroke) -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.5 3.2L16.8 20.5L10.5 20.5L5.5 24L5.5 3.2Z" fill="black" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+    </div>
 
     <div class="max-w-6xl mx-auto px-6 py-16">
         <!-- Шапка страницы -->
@@ -148,6 +171,53 @@
             <p>© 2026 Jafar | Telegram Botlar To'plami</p>
         </footer>
     </div>
+
+    <script>
+        // === Custom Cursor Logic ===
+        const cursor = document.getElementById('cursor');
+
+        // Only on non-touch devices
+        if (matchMedia('(pointer:fine)').matches) {
+            cursor.style.opacity = '1';
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+                cursor.style.opacity = '1';
+            });
+
+            // Hide when leaving page / losing focus
+            document.addEventListener('mouseleave', () => {
+                cursor.style.opacity = '0';
+            });
+            document.addEventListener('mouseenter', () => {
+                cursor.style.opacity = '1';
+            });
+            window.addEventListener('blur', () => {
+                cursor.style.opacity = '0';
+            });
+            window.addEventListener('focus', () => {
+                cursor.style.opacity = '1';
+            });
+            document.addEventListener('visibilitychange', () => {
+                cursor.style.opacity = document.hidden ? '0' : '1';
+            });
+
+            // Hover effect on interactive elements
+            const links = document.querySelectorAll('a, button, [role="button"]');
+            links.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                });
+                el.addEventListener('mouseleave', () => {
+                    cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+                });
+            });
+        } else {
+            cursor.style.display = 'none';
+            document.body.style.cursor = 'auto';
+        }
+    </script>
 
 </body>
 </html>
