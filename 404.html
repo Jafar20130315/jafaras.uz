@@ -40,8 +40,14 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Default Windows cursorni ham yashirish (faqat mouse bor qurilmalarda) */
         @media (pointer: fine) {
-            body { cursor: none; }
+          html, body,
+          a, button,
+          input, textarea, select, label,
+          [role="button"], [type="button"], [type="submit"] {
+            cursor: none !important;
+          }
         }
 
         ::-webkit-scrollbar { width: 8px; }
@@ -50,16 +56,6 @@
             background: linear-gradient(to bottom, #007AFF, #5856D6);
             border-radius: 4px;
         }
-        /* Custom cursor yoqilganda default Windows kursorini hamma joyda yashirish */
-@media (pointer: fine) {
-  html, body,
-  a, button,
-  input, textarea, select, label,
-  [role="button"], [type="button"], [type="submit"] {
-    cursor: none !important;
-  }
-}
-
 
         #bg-canvas {
             position: fixed;
@@ -80,7 +76,8 @@
             z-index: 9999;
             pointer-events: none;
             transform: translate(-50%, -50%);
-            transition: transform 0.1s ease;
+            transition: transform 0.1s ease, opacity 0.15s ease;
+            opacity: 1;
         }
 
         .glass-card {
@@ -226,9 +223,28 @@
         const cursor = document.getElementById('cursor');
 
         if (matchMedia('(pointer:fine)').matches) {
+            cursor.style.opacity = '1';
+
             document.addEventListener('mousemove', (e) => {
                 cursor.style.left = e.clientX + 'px';
                 cursor.style.top = e.clientY + 'px';
+                cursor.style.opacity = '1';
+            });
+
+            document.addEventListener('mouseleave', () => {
+                cursor.style.opacity = '0';
+            });
+            document.addEventListener('mouseenter', () => {
+                cursor.style.opacity = '1';
+            });
+            window.addEventListener('blur', () => {
+                cursor.style.opacity = '0';
+            });
+            window.addEventListener('focus', () => {
+                cursor.style.opacity = '1';
+            });
+            document.addEventListener('visibilitychange', () => {
+                cursor.style.opacity = document.hidden ? '0' : '1';
             });
 
             const links = document.querySelectorAll('a, button');
