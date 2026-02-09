@@ -50,6 +50,16 @@
             background: linear-gradient(to bottom, #007AFF, #5856D6);
             border-radius: 4px;
         }
+        /* Custom cursor yoqilganda default Windows kursorini hamma joyda yashirish */
+@media (pointer: fine) {
+  html, body,
+  a, button,
+  input, textarea, select, label,
+  [role="button"], [type="button"], [type="submit"] {
+    cursor: none !important;
+  }
+}
+
 
         #bg-canvas {
             position: fixed;
