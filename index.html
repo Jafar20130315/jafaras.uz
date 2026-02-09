@@ -63,6 +63,14 @@
             background: linear-gradient(to bottom, #007AFF, #5856D6);
             border-radius: 4px;
         }
+        @media (pointer: fine) {
+  html, body,
+  a, button,
+  input, textarea, select, label,
+  [role="button"], [type="button"], [type="submit"] {
+    cursor: none !important;
+  }
+}
 
         /* Canvas для Three.js на фоне */
         #bg-canvas {
