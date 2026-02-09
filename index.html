@@ -47,9 +47,14 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Скрываем стандартный курсор только на устройствах с мышкой */
+        /* Default Windows cursorni ham yashirish (faqat mouse bor qurilmalarda) */
         @media (pointer: fine) {
-            body { cursor: none; }
+          html, body,
+          a, button,
+          input, textarea, select, label,
+          [role="button"], [type="button"], [type="submit"] {
+            cursor: none !important;
+          }
         }
 
         /* Кастомный скроллбар */
@@ -63,14 +68,6 @@
             background: linear-gradient(to bottom, #007AFF, #5856D6);
             border-radius: 4px;
         }
-        @media (pointer: fine) {
-  html, body,
-  a, button,
-  input, textarea, select, label,
-  [role="button"], [type="button"], [type="submit"] {
-    cursor: none !important;
-  }
-}
 
         /* Canvas для Three.js на фоне */
         #bg-canvas {
@@ -93,7 +90,8 @@
             z-index: 9999;
             pointer-events: none;
             transform: translate(-50%, -50%);
-            transition: transform 0.1s ease;
+            transition: transform 0.1s ease, opacity 0.15s ease;
+            opacity: 1;
         }
         
         /* Рисуем стрелку курсора CSS-ом, чтобы было похоже на MacOS Black */
@@ -539,9 +537,29 @@
         
         // Only activate custom cursor on non-touch devices to avoid issues on mobile
         if (matchMedia('(pointer:fine)').matches) {
+            cursor.style.opacity = '1';
+
             document.addEventListener('mousemove', (e) => {
                 cursor.style.left = e.clientX + 'px';
                 cursor.style.top = e.clientY + 'px';
+                cursor.style.opacity = '1';
+            });
+
+            // Hide when leaving page / losing focus
+            document.addEventListener('mouseleave', () => {
+                cursor.style.opacity = '0';
+            });
+            document.addEventListener('mouseenter', () => {
+                cursor.style.opacity = '1';
+            });
+            window.addEventListener('blur', () => {
+                cursor.style.opacity = '0';
+            });
+            window.addEventListener('focus', () => {
+                cursor.style.opacity = '1';
+            });
+            document.addEventListener('visibilitychange', () => {
+                cursor.style.opacity = document.hidden ? '0' : '1';
             });
             
             // Add hover effect for links
