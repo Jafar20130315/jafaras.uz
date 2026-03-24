@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Obfuscator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::selection {
+            background-color: rgba(6, 182, 212, 0.3);
+        }
+        /* Кастомный скроллбар для текстовых полей */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #0a0f18;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#0f172a] text-slate-300 font-sans">
+
+    <!-- Navbar (без логотипа, только индикатор языка справа) -->
+    <header class="border-b border-slate-800 bg-[#0f172a]/90 backdrop-blur sticky top-0 z-50">
+        <nav class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-end">
+            <div class="flex items-center gap-4">
+                <span class="text-sm font-medium text-slate-400 border border-slate-700 bg-slate-800/50 px-3 py-1 rounded-md flex items-center gap-2">
+                    <span class="opacity-60">Язык:</span> 
+                    <span id="lang-indicator" class="text-cyan-400 uppercase font-bold">Auto</span>
+                </span>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="pt-16 pb-12 px-4 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-sm mb-6 text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                Бесплатный инструмент - Установка не требуется
+            </div>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 tracking-tight">
+                Защитите <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Исходный Код</span> <br class="hidden md:block" />
+                и скройте вашу логику
+            </h1>
+            <p class="max-w-2xl mx-auto text-lg text-slate-400">
+                Мгновенная обфускация HTML, CSS, JavaScript и Python. Просто вставьте код ниже и получите рабочий, минифицированный и защищенный результат за миллисекунды.
+            </p>
+        </section>
+
+        <!-- Workspace Layout -->
+        <section class="max-w-[1400px] mx-auto px-4 pb-20">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Input Window -->
+                <div class="rounded-xl border border-slate-700 bg-[#1e293b] shadow-2xl flex flex-col overflow-hidden h-[600px]">
+                    <div class="h-12 border-b border-slate-700 bg-[#0f172a]/50 flex items-center justify-between px-4">
+                        <div class="flex items-center gap-4">
+                            <div class="flex gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                            </div>
+                            <span class="text-sm font-mono text-slate-400" id="file-ext-input">source.txt</span>
+                        </div>
+                        <button id="clear-btn" class="text-xs flex items-center gap-1.5 text-slate-400 hover:text-rose-400 transition-colors px-2 py-1 rounded hover:bg-slate-800">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                            </svg>
+                            Очистить
+                        </button>
+                    </div>
+                    <textarea
+                        id="input-code"
+                        placeholder="Вставьте ваш код сюда..."
+                        class="flex-1 w-full bg-[#0a0f18] text-slate-300 p-5 font-mono text-sm focus:outline-none resize-none placeholder-slate-600 leading-relaxed"
+                        spellcheck="false"
+                    ></textarea>
+                </div>
+
+                <!-- Output Window -->
+                <div class="rounded-xl border border-slate-700 bg-[#1e293b] shadow-2xl flex flex-col overflow-hidden h-[600px]">
+                    <div class="h-12 border-b border-slate-700 bg-[#0f172a]/50 flex items-center justify-between px-4">
+                        <div class="flex items-center gap-4">
+                            <div class="flex gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-slate-600"></span>
+                                <span class="w-3 h-3 rounded-full bg-slate-600"></span>
+                                <span class="w-3 h-3 rounded-full bg-slate-600"></span>
+                            </div>
+                            <span class="text-sm font-mono text-cyan-400" id="file-ext-output">protected.txt</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="copy-btn" disabled class="flex items-center gap-1.5 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-slate-600">
+                                <svg id="copy-icon-default" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                                </svg>
+                                <svg id="copy-icon-success" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-emerald-400 hidden">
+                                    <path d="M20 6L9 17l-5-5"></path>
+                                </svg>
+                                <span id="copy-text">Копировать</span>
+                            </button>
+                            <button id="download-btn" disabled class="flex items-center gap-1.5 text-xs font-bold text-slate-900 bg-cyan-400 hover:bg-cyan-300 px-3 py-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+                                </svg>
+                                Скачать
+                            </button>
+                        </div>
+                    </div>
+                    <textarea
+                        id="output-code"
+                        readonly
+                        placeholder="Защищенный результат появится здесь..."
+                        class="flex-1 w-full bg-[#0a0f18] text-cyan-100/90 p-5 font-mono text-sm focus:outline-none resize-none placeholder-slate-600 leading-relaxed"
+                        spellcheck="false"
+                    ></textarea>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Утилиты для безопасного кодирования Unicode в Base64
+        const utf8_to_b64 = (str) => {
+            return window.btoa(unescape(encodeURIComponent(str)));
+        };
+
+        // Определение языка
+        const detectLanguage = (code) => {
+            const c = code.trim();
+            if (!c) return 'unknown';
+
+            if (/^<(!DOCTYPE|html|head|body|div|span|script|style|svg)/i.test(c) || (c.includes('<') && c.includes('</'))) {
+                return 'html';
+            }
+            if (/(^|\n)(import|def|class|print|from|try|except)\s/m.test(c) || c.includes('elif ') || c.includes('pass\n')) {
+                return 'python';
+            }
+            if (/(^|\n)[.#a-zA-Z0-9_-][^{}]*\{[^{}]*\}/m.test(c) && !c.includes('function') && !c.includes('=>') && !c.includes('const ')) {
+                return 'css';
+            }
+            return 'javascript';
+        };
+
+        // Обфускация
+        const obfuscateCode = (code, lang) => {
+            if (!code.trim()) return '';
+
+            try {
+                switch (lang) {
+                    case 'javascript': {
+                        const b64 = utf8_to_b64(code);
+                        return `eval(decodeURIComponent(escape(atob("${b64}"))));`;
+                    }
+                    case 'python': {
+                        const b64 = utf8_to_b64(code);
+                        return `import base64\nexec(base64.b64decode("${b64}").decode("utf-8"))`;
+                    }
+                    case 'html': {
+                        const b64 = utf8_to_b64(code);
+                        return `<script>document.write(decodeURIComponent(escape(atob("${b64}"))));<\/script>`;
+                    }
+                    case 'css': {
+                        return code
+                            .replace(/\/\*[\s\S]*?\*\//g, '')
+                            .replace(/\s+/g, ' ')
+                            .replace(/\s*([{}:;,>])\s*/g, '$1')
+                            .trim();
+                    }
+                    default:
+                        return code;
+                }
+            } catch (error) {
+                console.error("Ошибка обфускации:", error);
+                return "/* Произошла ошибка. Убедитесь, что код валиден. */\n" + code;
+            }
+        };
+
+        const getExtension = (lang) => {
+            const map = { html: 'html', css: 'css', javascript: 'js', python: 'py', unknown: 'txt' };
+            return map[lang] || 'txt';
+        };
+
+        // Элементы DOM
+        const inputCode = document.getElementById('input-code');
+        const outputCode = document.getElementById('output-code');
+        const langIndicator = document.getElementById('lang-indicator');
+        const fileExtInput = document.getElementById('file-ext-input');
+        const fileExtOutput = document.getElementById('file-ext-output');
+        const copyBtn = document.getElementById('copy-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        
+        const copyIconDefault = document.getElementById('copy-icon-default');
+        const copyIconSuccess = document.getElementById('copy-icon-success');
+        const copyText = document.getElementById('copy-text');
+
+        let detectedLang = 'unknown';
+        let debounceTimer;
+
+        // Обновление UI
+        const updateUI = () => {
+            langIndicator.textContent = detectedLang !== 'unknown' ? detectedLang : 'Auto';
+            const ext = getExtension(detectedLang);
+            fileExtInput.textContent = `source.${ext}`;
+            fileExtOutput.textContent = `protected.${ext}`;
+            
+            const hasOutput = outputCode.value.trim().length > 0;
+            copyBtn.disabled = !hasOutput;
+            downloadBtn.disabled = !hasOutput;
+        };
+
+        // Слушатель ввода
+        inputCode.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            const val = e.target.value;
+            detectedLang = detectLanguage(val);
+            
+            debounceTimer = setTimeout(() => {
+                if (val.trim()) {
+                    outputCode.value = obfuscateCode(val, detectedLang);
+                } else {
+                    outputCode.value = '';
+                }
+                updateUI();
+            }, 300);
+            updateUI(); // Обновляем индикаторы сразу
+        });
+
+        // Очистка
+        clearBtn.addEventListener('click', () => {
+            inputCode.value = '';
+            outputCode.value = '';
+            detectedLang = 'unknown';
+            updateUI();
+        });
+
+        // Копирование
+        copyBtn.addEventListener('click', async () => {
+            if (!outputCode.value) return;
+            
+            try {
+                await navigator.clipboard.writeText(outputCode.value);
+            } catch (err) {
+                // Fallback
+                const textArea = document.createElement("textarea");
+                textArea.value = outputCode.value;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+            }
+
+            // Анимация кнопки
+            copyIconDefault.classList.add('hidden');
+            copyIconSuccess.classList.remove('hidden');
+            copyText.textContent = 'Скопировано';
+            copyText.classList.add('text-emerald-400');
+            
+            setTimeout(() => {
+                copyIconDefault.classList.remove('hidden');
+                copyIconSuccess.classList.add('hidden');
+                copyText.textContent = 'Копировать';
+                copyText.classList.remove('text-emerald-400');
+            }, 2000);
+        });
+
+        // Скачивание
+        downloadBtn.addEventListener('click', () => {
+            if (!outputCode.value) return;
+            const blob = new Blob([outputCode.value], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `obfuscated_code.${getExtension(detectedLang)}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>
