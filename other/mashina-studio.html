@@ -3,117 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Home Surveillance System</title>
+    <title>Surveillance Pro</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
         :root {
-            --bg-color: #121212;
-            --text-color: #ffffff;
-            --primary: #007bff;
-            --danger: #dc3545;
-            --success: #28a745;
+            --bg-dark: #0f172a;
+            --surface: #1e293b;
+            --surface-light: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color); color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            width: 100%; height: 100%;
             overflow-x: hidden;
         }
-        button {
-            padding: 10px 15px; border: none; border-radius: 5px;
-            color: white; font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
-        button:hover { opacity: 0.8; }
-        .btn-primary { background-color: var(--primary); }
-        .btn-danger { background-color: var(--danger); }
-        .btn-success { background-color: var(--success); }
-        input {
-            padding: 10px; border-radius: 5px; border: 1px solid #444;
-            background: #222; color: white; margin-bottom: 10px;
-        }
+
+        /* Утилиты */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { display: flex; flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .gap-2 { gap: 0.5rem; } .gap-4 { gap: 1rem; }
         
-        /* Скрываем элементы по умолчанию */
-        #mobile-view, #desktop-view, #black-screen { display: none; }
+        /* Кнопки и инпуты */
+        button {
+            padding: 0.75rem 1.5rem; border: none; border-radius: 8px;
+            font-weight: 600; font-size: 0.95rem; cursor: pointer;
+            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        button:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: var(--danger-hover); }
+        .btn-success { background: var(--success); color: white; }
+        
+        input {
+            width: 100%; padding: 0.75rem 1rem; border-radius: 8px;
+            background: var(--surface-light); border: 1px solid var(--border);
+            color: white; font-size: 1rem; outline: none; transition: border 0.2s;
+        }
+        input:focus { border-color: var(--primary); }
 
-        /* Авторизация */
+        /* Авторизация (Login Room) */
         #auth-view {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; text-align: center;
+            height: 100vh;
+        }
+        .login-card {
+            background: var(--surface); padding: 2.5rem; border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; max-width: 400px;
+            border: 1px solid var(--border);
+        }
+        .login-card h1 { margin-bottom: 0.5rem; font-size: 1.8rem; text-align: center; }
+        .login-card p { color: var(--text-muted); margin-bottom: 2rem; text-align: center; }
+        .role-selector { display: flex; gap: 10px; margin-top: 1rem; }
+        .role-selector button { flex: 1; padding: 1rem 0; }
+
+        /* Мобильный вид (Камера) */
+        #mobile-view { height: 100vh; position: relative; background: #000; }
+        #local-video { width: 100%; height: 100%; object-fit: cover; }
+        .camera-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 1.5rem; pointer-events: none;
+        }
+        .camera-header { display: flex; justify-content: space-between; pointer-events: auto; }
+        .status-badge {
+            background: rgba(0,0,0,0.6); padding: 0.5rem 1rem; border-radius: 20px;
+            backdrop-filter: blur(5px); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;
+        }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        
+        .camera-controls {
+            pointer-events: auto; display: flex; gap: 10px; justify-content: center;
+            background: rgba(15, 23, 42, 0.8); padding: 1rem; border-radius: 16px; backdrop-filter: blur(10px);
         }
 
-        /* Мобильный вид */
-        #mobile-view {
-            height: 100vh; display: flex; flex-direction: column;
-        }
-        #mobile-video {
-            flex-grow: 1; width: 100%; background: #000; object-fit: cover;
-        }
-        .mobile-controls {
-            padding: 15px; display: flex; gap: 10px; justify-content: center; background: #222;
+        /* Черный экран */
+        #sleep-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 1000;
+            display: flex; align-items: center; justify-content: center; color: #333;
         }
 
-        /* Черный экран (имитация отключения) */
-        #black-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: black; z-index: 9999;
-            display: none; align-items: center; justify-content: center; color: #333;
+        /* Панель управления (Десктоп) */
+        #desktop-view { padding: 2rem; height: 100vh; display: flex; flex-direction: column; }
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--surface); padding: 1rem 2rem; border-radius: 12px; margin-bottom: 2rem;
+            border: 1px solid var(--border);
         }
-
-        /* Десктопный вид */
-        #desktop-view { padding: 20px; }
-        .desktop-controls {
-            display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
-            background: #222; padding: 15px; border-radius: 8px;
-        }
-        .video-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;
+        .room-info h2 { font-size: 1.2rem; margin-bottom: 0.2rem; }
+        .room-info span { color: var(--text-muted); font-size: 0.9rem; }
+        
+        .desktop-actions { display: flex; gap: 10px; }
+        
+        .main-content { display: flex; gap: 2rem; flex: 1; min-height: 0; }
+        
+        /* Сетка камер */
+        .cameras-container { flex: 3; overflow-y: auto; }
+        .cameras-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem;
         }
         .camera-card {
-            background: #222; padding: 10px; border-radius: 8px; text-align: center;
+            background: var(--surface); border-radius: 12px; overflow: hidden;
+            border: 1px solid var(--border); display: flex; flex-direction: column;
         }
-        .camera-card video { width: 100%; border-radius: 5px; background: #000; }
+        .camera-feed {
+            width: 100%; aspect-ratio: 16/9; background: #000; position: relative;
+        }
+        .camera-feed video { width: 100%; height: 100%; object-fit: cover; }
+        .camera-info { padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Боковая панель (Записи) */
+        .sidebar {
+            flex: 1; background: var(--surface); border-radius: 12px; padding: 1.5rem;
+            border: 1px solid var(--border); display: flex; flex-direction: column;
+            min-width: 300px; max-width: 400px;
+        }
+        .recordings-list { flex: 1; overflow-y: auto; margin-top: 1rem; display: flex; flex-direction: column; gap: 10px; }
+        .record-item {
+            background: var(--surface-light); padding: 1rem; border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .record-item a { color: var(--primary); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+        .record-item a:hover { text-decoration: underline; }
+
+        /* Иконки (SVG встроены) */
+        .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     </style>
 </head>
 <body>
 
-    <div id="auth-view">
-        <h1>Система Наблюдения</h1>
-        <p>Выберите режим работы:</p>
-        <input type="password" id="password" placeholder="Введите пароль">
-        <div>
-            <button class="btn-primary" onclick="login('mobile')">Режим Камеры (Телефон)</button>
-            <button class="btn-success" onclick="login('desktop')">Панель Управления (ПК)</button>
-        </div>
-    </div>
-
-    <div id="mobile-view">
-        <video id="mobile-video" autoplay playsinline muted></video>
-        <div class="mobile-controls">
-            <button class="btn-primary" id="btn-fake-sleep" onclick="toggleSleepMode()">Отключить экран</button>
-            <button class="btn-danger" id="btn-stop-rec" onclick="stopMobileRecording()">Остановить запись</button>
-        </div>
-    </div>
-
-    <div id="black-screen" onclick="toggleSleepMode()">
-        <span>Коснитесь экрана для пробуждения</span>
-    </div>
-
-    <div id="desktop-view">
-        <div class="desktop-controls">
-            <button class="btn-danger" onclick="globalCommand('record')">Запись всех</button>
-            <button class="btn-primary" onclick="globalCommand('stop')">Остановить запись</button>
-            <button class="btn-success" onclick="showAllRecords()">Все записи</button>
-            <button class="btn-primary" onclick="globalCommand('download')">Скачать записи</button>
-            <button class="btn-danger" style="margin-left: auto;" onclick="globalCommand('turnoff')">Отключить все камеры</button>
-        </div>
-        <div class="video-grid" id="video-grid">
+    <!-- Экран входа (Создание/Вход в комнату) -->
+    <div id="auth-view" class="flex items-center justify-center">
+        <div class="login-card">
+            <h1>Surveillance Pro</h1>
+            <p>Защищенный доступ к камерам</p>
+            <div class="flex-col gap-4">
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem; display: block;">ID Комнаты (Логин)</label>
+                    <input type="text" id="room-id" placeholder="Например: myhome123" value="home1">
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem; display: block;">Пароль</label>
+                    <input type="password" id="room-pass" placeholder="Секретный пароль" value="1234">
+                </div>
+                <div class="role-selector">
+                    <button class="btn-primary" onclick="app.login('camera')">
+                        <svg class="icon"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                        Камера
+                    </button>
+                    <button class="btn-primary" onclick="app.login('viewer')" style="background: var(--surface-light); border: 1px solid var(--border);">
+                        <svg class="icon"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        Панель ПК
+                    </button>
+                </div>
             </div>
+        </div>
     </div>
 
+    <!-- Мобильный вид (Режим трансляции) -->
+    <div id="mobile-view" class="hidden">
+        <video id="local-video" autoplay playsinline muted></video>
+        <div class="camera-overlay">
+            <div class="camera-header">
+                <div class="status-badge" id="cam-status">
+                    <div class="status-dot" style="background: var(--text-muted);"></div> Ожидание подключения...
+                </div>
+                <div class="status-badge hidden" id="rec-indicator" style="background: rgba(220,38,38,0.2); border: 1px solid var(--danger);">
+                    <div class="status-dot"></div> REC
+                </div>
+            </div>
+            <div class="camera-controls">
+                <button class="btn-primary" onclick="app.cameraMode.toggleSleep()">
+                    <svg class="icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Спящий режим
+                </button>
+            </div>
+        </div>
+        <div id="sleep-overlay" class="hidden" onclick="app.cameraMode.toggleSleep()">
+            <span>Коснитесь, чтобы проснуться</span>
+        </div>
+    </div>
+
+    <!-- Десктопный вид (Панель управления) -->
+    <div id="desktop-view" class="hidden">
+        <div class="top-bar">
+            <div class="room-info">
+                <h2>Панель Управления</h2>
+                <span id="desktop-room-name">Комната: -</span>
+            </div>
+            <div class="desktop-actions">
+                <button class="btn-danger" onclick="app.viewerMode.globalCommand('record')">
+                    <svg class="icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg> Запись всех
+                </button>
+                <button class="btn-primary" onclick="app.viewerMode.globalCommand('stop_record')" style="background: var(--surface-light);">
+                    <svg class="icon"><rect x="6" y="6" width="12" height="12"/></svg> Стоп запись
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="cameras-container">
+                <div class="cameras-grid" id="cameras-grid">
+                    <!-- Карточки камер добавляются динамически -->
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <h3>Локальные записи</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Сохраняются прямо в памяти ПК после остановки записи.</p>
+                <div class="recordings-list" id="recordings-list">
+                    <p style="color:var(--text-muted); font-size:0.9rem;">Пока нет записей.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Логика Приложения -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, query, orderBy, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // !!! ВСТАВЬ СВОИ ДАННЫЕ FIREBASE СЮДА !!!
         const firebaseConfig = {
             apiKey: "AIzaSyA79oUjY6YAZ9-S34Sj16k5qllxXB4HaXk",
             authDomain: "kuzatuv-kamerasi.firebaseapp.com",
@@ -123,151 +249,340 @@
             appId: "1:849973167598:web:b469ee80ce412c0933faff"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const fbApp = initializeApp(firebaseConfig);
+        const auth = getAuth(fbApp);
+        const db = getFirestore(fbApp);
 
-        // Глобальные переменные
-        let localStream;
-        let mediaRecorder;
-        let recordedChunks = [];
-        let wakeLock = null;
-
-        // Авторизация и переключение UI
-        window.login = async function(mode) {
-            const pwd = document.getElementById('password').value;
-            if (pwd !== "1234") { // Замени на нужный пароль
-                alert("Неверный пароль!");
-                return;
-            }
-
-            document.getElementById('auth-view').style.display = 'none';
-
-            if (mode === 'mobile') {
-                document.getElementById('mobile-view').style.display = 'flex';
-                await startMobileCamera();
-            } else {
-                document.getElementById('desktop-view').style.display = 'block';
-                initDesktopPanel();
-            }
+        // Конфигурация WebRTC STUN серверов (бесплатные серверы Google)
+        const rtcConfig = {
+            iceServers: [{ urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }]
         };
 
-        // ==========================================
-        // ЛОГИКА ТЕЛЕФОНА (КАМЕРА)
-        // ==========================================
-        async function startMobileCamera() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true });
-                document.getElementById('mobile-video').srcObject = localStream;
-                
-                // Настройка записи
-                mediaRecorder = new MediaRecorder(localStream);
-                mediaRecorder.ondataavailable = event => {
-                    if (event.data.size > 0) recordedChunks.push(event.data);
-                };
-                mediaRecorder.onstop = downloadRecord;
-                mediaRecorder.start(); // Начинаем запись автоматически
+        const app = {
+            roomId: null,
+            password: null,
+            userId: null,
+            role: null,
 
-                // Слушаем команды от ПК через Firebase
-                onSnapshot(doc(db, "commands", "global"), (docSnap) => {
-                    if(docSnap.exists()) {
-                        const cmd = docSnap.data().action;
-                        handleRemoteCommand(cmd);
-                    }
-                });
+            async login(role) {
+                this.roomId = document.getElementById('room-id').value.trim();
+                this.password = document.getElementById('room-pass').value.trim();
+                if (!this.roomId || !this.password) return alert("Введите ID комнаты и пароль");
 
-            } catch (err) {
-                console.error("Ошибка доступа к камере: ", err);
-                alert("Разрешите доступ к камере и микрофону!");
-            }
-        }
-
-        function handleRemoteCommand(cmd) {
-            if (cmd === 'record' && mediaRecorder.state === 'inactive') {
-                recordedChunks = []; mediaRecorder.start();
-            } else if (cmd === 'stop' && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-            } else if (cmd === 'turnoff') {
-                if (localStream) localStream.getTracks().forEach(track => track.stop());
-                window.location.reload();
-            }
-        }
-
-        window.stopMobileRecording = function() {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-                alert("Запись остановлена и сохранена.");
-            }
-        };
-
-        function downloadRecord() {
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `camera_record_${new Date().getTime()}.webm`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-
-        // Режим "Черного экрана" и предотвращение засыпания
-        window.toggleSleepMode = async function() {
-            const blackScreen = document.getElementById('black-screen');
-            if (blackScreen.style.display === 'flex') {
-                blackScreen.style.display = 'none';
-                if (wakeLock !== null) {
-                    await wakeLock.release();
-                    wakeLock = null;
-                }
-            } else {
-                blackScreen.style.display = 'flex';
                 try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (err) {
-                    console.error("Wake Lock не поддерживается", err);
+                    // Анонимная авторизация для избежания конфликтов прав (если включены правила)
+                    const userCred = await signInAnonymously(auth);
+                    this.userId = userCred.user.uid;
+                    this.role = role;
+
+                    // Проверка или создание комнаты
+                    const roomRef = doc(db, "rooms", this.roomId);
+                    const roomSnap = await getDoc(roomRef);
+
+                    if (roomSnap.exists()) {
+                        if (roomSnap.data().password !== this.password) {
+                            return alert("Неверный пароль комнаты!");
+                        }
+                    } else {
+                        await setDoc(roomRef, { password: this.password, createdAt: Date.now(), globalCommand: null });
+                    }
+
+                    document.getElementById('auth-view').classList.add('hidden');
+
+                    if (role === 'camera') {
+                        document.getElementById('mobile-view').classList.remove('hidden');
+                        this.cameraMode.init();
+                    } else {
+                        document.getElementById('desktop-view').classList.remove('hidden');
+                        document.getElementById('desktop-room-name').innerText = `Комната: ${this.roomId}`;
+                        this.viewerMode.init();
+                    }
+                } catch (error) {
+                    console.error("Ошибка входа:", error);
+                    alert("Ошибка соединения с сервером. Проверьте консоль.");
+                }
+            },
+
+            // ==========================================
+            // ЛОГИКА КАМЕРЫ (Мобильный)
+            // ==========================================
+            cameraMode: {
+                stream: null,
+                peerConnection: null,
+                wakeLock: null,
+
+                async init() {
+                    try {
+                        // Запрашиваем доступ к камере
+                        this.stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, 
+                            audio: true 
+                        });
+                        document.getElementById('local-video').srcObject = this.stream;
+                        
+                        // Регистрируем камеру в БД
+                        const camRef = doc(db, `rooms/${app.roomId}/cameras`, app.userId);
+                        await setDoc(camRef, {
+                            id: app.userId,
+                            name: `Камера ${Math.floor(Math.random() * 1000)}`,
+                            status: 'online',
+                            timestamp: Date.now()
+                        });
+
+                        this.listenForViewer();
+                        this.listenForGlobalCommands();
+
+                    } catch (e) {
+                        alert("Ошибка доступа к камере. Убедитесь, что даны разрешения.");
+                        console.error(e);
+                    }
+                },
+
+                // Ожидание запроса WebRTC от зрителя (ПК)
+                listenForViewer() {
+                    const signalRef = doc(db, `rooms/${app.roomId}/cameras`, app.userId);
+                    onSnapshot(signalRef, async (snap) => {
+                        const data = snap.data();
+                        if (!data) return;
+
+                        // Если зритель прислал Offer
+                        if (data.offer && !this.peerConnection) {
+                            this.createPeerConnection(signalRef);
+                            await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                            const answer = await this.peerConnection.createAnswer();
+                            await this.peerConnection.setLocalDescription(answer);
+                            // Отправляем Answer назад
+                            await updateDoc(signalRef, { answer: { type: answer.type, sdp: answer.sdp } });
+                        }
+
+                        // Если пришли новые ICE кандидаты от зрителя
+                        if (data.viewerCandidate && this.peerConnection) {
+                            try {
+                                await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.viewerCandidate));
+                                // Очищаем кандидата после добавления
+                                await updateDoc(signalRef, { viewerCandidate: null });
+                            } catch(e) {}
+                        }
+                    });
+                },
+
+                createPeerConnection(signalRef) {
+                    this.peerConnection = new RTCPeerConnection(rtcConfig);
+                    
+                    // Добавляем локальные треки с камеры в соединение
+                    this.stream.getTracks().forEach(track => this.peerConnection.addTrack(track, this.stream));
+
+                    // Отправка наших ICE кандидатов зрителю
+                    this.peerConnection.onicecandidate = async (event) => {
+                        if (event.candidate) {
+                            await updateDoc(signalRef, { 
+                                cameraCandidate: event.candidate.toJSON() 
+                            });
+                        }
+                    };
+
+                    this.peerConnection.onconnectionstatechange = () => {
+                        const state = this.peerConnection.connectionState;
+                        const badge = document.getElementById('cam-status');
+                        if (state === 'connected') {
+                            badge.innerHTML = `<div class="status-dot" style="background: var(--success); animation:none;"></div> Трансляция идет`;
+                        } else if (state === 'disconnected' || state === 'failed') {
+                            badge.innerHTML = `<div class="status-dot" style="background: var(--danger);"></div> Соединение потеряно`;
+                            this.peerConnection = null; // Сброс для нового подключения
+                            updateDoc(signalRef, { offer: null, answer: null });
+                        }
+                    };
+                },
+
+                listenForGlobalCommands() {
+                    onSnapshot(doc(db, "rooms", app.roomId), (snap) => {
+                        const data = snap.data();
+                        if (data && data.globalCommand) {
+                            const cmd = data.globalCommand;
+                            if (cmd.action === 'record') {
+                                document.getElementById('rec-indicator').classList.remove('hidden');
+                            } else if (cmd.action === 'stop_record') {
+                                document.getElementById('rec-indicator').classList.add('hidden');
+                            }
+                        }
+                    });
+                },
+
+                async toggleSleep() {
+                    const overlay = document.getElementById('sleep-overlay');
+                    if (overlay.classList.contains('hidden')) {
+                        overlay.classList.remove('hidden');
+                        try { this.wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+                    } else {
+                        overlay.classList.add('hidden');
+                        if (this.wakeLock) { await this.wakeLock.release(); this.wakeLock = null; }
+                    }
+                }
+            },
+
+            // ==========================================
+            // ЛОГИКА ПАНЕЛИ УПРАВЛЕНИЯ (ПК)
+            // ==========================================
+            viewerMode: {
+                activeConnections: {}, // Хранит RTCPeerConnection для каждой камеры
+                recorders: {}, // Хранит MediaRecorder для каждой камеры
+
+                init() {
+                    this.listenForCameras();
+                },
+
+                listenForCameras() {
+                    const camerasRef = collection(db, `rooms/${app.roomId}/cameras`);
+                    onSnapshot(camerasRef, (snapshot) => {
+                        snapshot.docChanges().forEach((change) => {
+                            const camData = change.doc.data();
+                            const camId = camData.id;
+
+                            if (change.type === "added") {
+                                this.renderCameraCard(camData);
+                                this.connectToCamera(camId);
+                            }
+                            if (change.type === "removed") {
+                                document.getElementById(`cam-card-${camId}`)?.remove();
+                                if(this.activeConnections[camId]) this.activeConnections[camId].close();
+                            }
+                        });
+                    });
+                },
+
+                renderCameraCard(camData) {
+                    const grid = document.getElementById('cameras-grid');
+                    const card = document.createElement('div');
+                    card.className = 'camera-card';
+                    card.id = `cam-card-${camData.id}`;
+                    card.innerHTML = `
+                        <div class="camera-feed">
+                            <video id="video-${camData.id}" autoplay playsinline controls></video>
+                            <div id="loader-${camData.id}" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color: var(--text-muted);">Установка соединения (WebRTC)...</div>
+                        </div>
+                        <div class="camera-info">
+                            <span style="font-weight:600;">${camData.name}</span>
+                            <span style="font-size:0.8rem; background:rgba(16,185,129,0.2); color:var(--success); padding:2px 8px; border-radius:12px;">Online</span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                },
+
+                async connectToCamera(camId) {
+                    const pc = new RTCPeerConnection(rtcConfig);
+                    this.activeConnections[camId] = pc;
+                    const signalRef = doc(db, `rooms/${app.roomId}/cameras`, camId);
+
+                    // Получаем видео поток
+                    pc.ontrack = (event) => {
+                        const videoEl = document.getElementById(`video-${camId}`);
+                        if (videoEl) {
+                            videoEl.srcObject = event.streams[0];
+                            document.getElementById(`loader-${camId}`).style.display = 'none';
+                        }
+                    };
+
+                    // Создаем Offer
+                    const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
+                    await pc.setLocalDescription(offer);
+                    
+                    // Сбрасываем старые сигналы и отправляем новый Offer
+                    await updateDoc(signalRef, { 
+                        offer: { type: offer.type, sdp: offer.sdp },
+                        answer: null, cameraCandidate: null, viewerCandidate: null 
+                    });
+
+                    // Слушаем ответ от камеры и ICE кандидатов
+                    onSnapshot(signalRef, async (snap) => {
+                        const data = snap.data();
+                        if (!data) return;
+
+                        if (data.answer && pc.signalingState !== "stable") {
+                            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                        }
+
+                        if (data.cameraCandidate) {
+                            try {
+                                await pc.addIceCandidate(new RTCIceCandidate(data.cameraCandidate));
+                                await updateDoc(signalRef, { cameraCandidate: null });
+                            } catch(e) {}
+                        }
+                    });
+
+                    pc.onicecandidate = async (event) => {
+                        if (event.candidate) {
+                            await updateDoc(signalRef, { viewerCandidate: event.candidate.toJSON() });
+                        }
+                    };
+                },
+
+                startRecordingAll() {
+                    for (const camId in this.activeConnections) {
+                        const videoEl = document.getElementById(`video-${camId}`);
+                        if (videoEl && videoEl.srcObject) {
+                            const stream = videoEl.srcObject;
+                            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                            const chunks = [];
+                            
+                            recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+                            recorder.onstop = () => this.saveLocalRecording(camId, chunks);
+                            
+                            recorder.start();
+                            this.recorders[camId] = recorder;
+                        }
+                    }
+                },
+
+                stopRecordingAll() {
+                    for (const camId in this.recorders) {
+                        if (this.recorders[camId].state === 'recording') {
+                            this.recorders[camId].stop();
+                        }
+                    }
+                    this.recorders = {};
+                },
+
+                saveLocalRecording(camId, chunks) {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const list = document.getElementById('recordings-list');
+                    
+                    if (list.innerHTML.includes('Пока нет записей')) {
+                        list.innerHTML = '';
+                    }
+
+                    const time = new Date().toLocaleTimeString();
+                    const shortCamId = camId.substring(0, 5);
+                    
+                    list.innerHTML += `
+                        <div class="record-item">
+                            <div>
+                                <svg class="icon" style="vertical-align: middle; margin-right: 5px; color: var(--danger);"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                                <span style="font-size: 0.9rem;">Камера ${shortCamId} (${time})</span>
+                            </div>
+                            <a href="${url}" download="record_cam_${shortCamId}_${Date.now()}.webm">Скачать</a>
+                        </div>
+                    `;
+                },
+
+                async globalCommand(action) {
+                    // Сначала запускаем/останавливаем локальную запись на ПК
+                    if (action === 'record') {
+                        this.startRecordingAll();
+                    } else if (action === 'stop_record') {
+                        this.stopRecordingAll();
+                    }
+
+                    // Затем отправляем сигнал в базу, чтобы на телефоне загорелся "REC"
+                    await updateDoc(doc(db, "rooms", app.roomId), {
+                        globalCommand: { action: action, ts: Date.now() }
+                    });
                 }
             }
         };
 
-        // ==========================================
-        // ЛОГИКА ПК (ПАНЕЛЬ УПРАВЛЕНИЯ)
-        // ==========================================
-        function initDesktopPanel() {
-            // В реальном приложении здесь устанавливается WebRTC соединение.
-            // Для упрощения примера, панель управления сейчас отправляет глобальные команды.
-            // Чтобы увидеть реальные видео потоки, нужен сигнальный сервер WebRTC через Firestore.
-            console.log("Панель ПК инициализирована");
-            
-            // Демо-карточка (заглушка для места под камеру)
-            const grid = document.getElementById('video-grid');
-            grid.innerHTML = `
-                <div class="camera-card">
-                    <h3>Ожидание камер...</h3>
-                    <div style="width:100%; height:200px; background:#111; display:flex; align-items:center; justify-content:center; border-radius:5px;">
-                        WebRTC Stream
-                    </div>
-                </div>
-            `;
-        }
-
-        window.globalCommand = async function(action) {
-            // Отправляем команду всем телефонам через Firebase
-            try {
-                await setDoc(doc(db, "commands", "global"), {
-                    action: action,
-                    timestamp: new Date().getTime()
-                });
-                alert(`Команда "${action}" отправлена на все устройства.`);
-            } catch (e) {
-                console.error("Ошибка отправки команды:", e);
-                alert("Ошибка соединения с Firebase. Проверьте настройки конфигурации.");
-            }
-        };
-
-        window.showAllRecords = function() {
-            alert("В этой версии записи сохраняются локально на телефонах. Для централизованного хранилища нужно подключить Firebase Storage.");
-        };
+        // Делаем объект app глобальным для вызовов из HTML
+        window.app = app;
     </script>
 </body>
 </html>
