@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Home Surveillance System</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --primary: #007bff;
+            --danger: #dc3545;
+            --success: #28a745;
+        }
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color); color: var(--text-color);
+            overflow-x: hidden;
+        }
+        button {
+            padding: 10px 15px; border: none; border-radius: 5px;
+            color: white; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        button:hover { opacity: 0.8; }
+        .btn-primary { background-color: var(--primary); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-success { background-color: var(--success); }
+        input {
+            padding: 10px; border-radius: 5px; border: 1px solid #444;
+            background: #222; color: white; margin-bottom: 10px;
+        }
+        
+        /* Скрываем элементы по умолчанию */
+        #mobile-view, #desktop-view, #black-screen { display: none; }
+
+        /* Авторизация */
+        #auth-view {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; text-align: center;
+        }
+
+        /* Мобильный вид */
+        #mobile-view {
+            height: 100vh; display: flex; flex-direction: column;
+        }
+        #mobile-video {
+            flex-grow: 1; width: 100%; background: #000; object-fit: cover;
+        }
+        .mobile-controls {
+            padding: 15px; display: flex; gap: 10px; justify-content: center; background: #222;
+        }
+
+        /* Черный экран (имитация отключения) */
+        #black-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: black; z-index: 9999;
+            display: none; align-items: center; justify-content: center; color: #333;
+        }
+
+        /* Десктопный вид */
+        #desktop-view { padding: 20px; }
+        .desktop-controls {
+            display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+            background: #222; padding: 15px; border-radius: 8px;
+        }
+        .video-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;
+        }
+        .camera-card {
+            background: #222; padding: 10px; border-radius: 8px; text-align: center;
+        }
+        .camera-card video { width: 100%; border-radius: 5px; background: #000; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-view">
+        <h1>Система Наблюдения</h1>
+        <p>Выберите режим работы:</p>
+        <input type="password" id="password" placeholder="Введите пароль">
+        <div>
+            <button class="btn-primary" onclick="login('mobile')">Режим Камеры (Телефон)</button>
+            <button class="btn-success" onclick="login('desktop')">Панель Управления (ПК)</button>
+        </div>
+    </div>
+
+    <div id="mobile-view">
+        <video id="mobile-video" autoplay playsinline muted></video>
+        <div class="mobile-controls">
+            <button class="btn-primary" id="btn-fake-sleep" onclick="toggleSleepMode()">Отключить экран</button>
+            <button class="btn-danger" id="btn-stop-rec" onclick="stopMobileRecording()">Остановить запись</button>
+        </div>
+    </div>
+
+    <div id="black-screen" onclick="toggleSleepMode()">
+        <span>Коснитесь экрана для пробуждения</span>
+    </div>
+
+    <div id="desktop-view">
+        <div class="desktop-controls">
+            <button class="btn-danger" onclick="globalCommand('record')">Запись всех</button>
+            <button class="btn-primary" onclick="globalCommand('stop')">Остановить запись</button>
+            <button class="btn-success" onclick="showAllRecords()">Все записи</button>
+            <button class="btn-primary" onclick="globalCommand('download')">Скачать записи</button>
+            <button class="btn-danger" style="margin-left: auto;" onclick="globalCommand('turnoff')">Отключить все камеры</button>
+        </div>
+        <div class="video-grid" id="video-grid">
+            </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // !!! ВСТАВЬ СВОИ ДАННЫЕ FIREBASE СЮДА !!!
+        const firebaseConfig = {
+            apiKey: "AIzaSyA79oUjY6YAZ9-S34Sj16k5qllxXB4HaXk",
+            authDomain: "kuzatuv-kamerasi.firebaseapp.com",
+            projectId: "kuzatuv-kamerasi",
+            storageBucket: "kuzatuv-kamerasi.firebasestorage.app",
+            messagingSenderId: "849973167598",
+            appId: "1:849973167598:web:b469ee80ce412c0933faff"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Глобальные переменные
+        let localStream;
+        let mediaRecorder;
+        let recordedChunks = [];
+        let wakeLock = null;
+
+        // Авторизация и переключение UI
+        window.login = async function(mode) {
+            const pwd = document.getElementById('password').value;
+            if (pwd !== "1234") { // Замени на нужный пароль
+                alert("Неверный пароль!");
+                return;
+            }
+
+            document.getElementById('auth-view').style.display = 'none';
+
+            if (mode === 'mobile') {
+                document.getElementById('mobile-view').style.display = 'flex';
+                await startMobileCamera();
+            } else {
+                document.getElementById('desktop-view').style.display = 'block';
+                initDesktopPanel();
+            }
+        };
+
+        // ==========================================
+        // ЛОГИКА ТЕЛЕФОНА (КАМЕРА)
+        // ==========================================
+        async function startMobileCamera() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: true });
+                document.getElementById('mobile-video').srcObject = localStream;
+                
+                // Настройка записи
+                mediaRecorder = new MediaRecorder(localStream);
+                mediaRecorder.ondataavailable = event => {
+                    if (event.data.size > 0) recordedChunks.push(event.data);
+                };
+                mediaRecorder.onstop = downloadRecord;
+                mediaRecorder.start(); // Начинаем запись автоматически
+
+                // Слушаем команды от ПК через Firebase
+                onSnapshot(doc(db, "commands", "global"), (docSnap) => {
+                    if(docSnap.exists()) {
+                        const cmd = docSnap.data().action;
+                        handleRemoteCommand(cmd);
+                    }
+                });
+
+            } catch (err) {
+                console.error("Ошибка доступа к камере: ", err);
+                alert("Разрешите доступ к камере и микрофону!");
+            }
+        }
+
+        function handleRemoteCommand(cmd) {
+            if (cmd === 'record' && mediaRecorder.state === 'inactive') {
+                recordedChunks = []; mediaRecorder.start();
+            } else if (cmd === 'stop' && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            } else if (cmd === 'turnoff') {
+                if (localStream) localStream.getTracks().forEach(track => track.stop());
+                window.location.reload();
+            }
+        }
+
+        window.stopMobileRecording = function() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                alert("Запись остановлена и сохранена.");
+            }
+        };
+
+        function downloadRecord() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `camera_record_${new Date().getTime()}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Режим "Черного экрана" и предотвращение засыпания
+        window.toggleSleepMode = async function() {
+            const blackScreen = document.getElementById('black-screen');
+            if (blackScreen.style.display === 'flex') {
+                blackScreen.style.display = 'none';
+                if (wakeLock !== null) {
+                    await wakeLock.release();
+                    wakeLock = null;
+                }
+            } else {
+                blackScreen.style.display = 'flex';
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                } catch (err) {
+                    console.error("Wake Lock не поддерживается", err);
+                }
+            }
+        };
+
+        // ==========================================
+        // ЛОГИКА ПК (ПАНЕЛЬ УПРАВЛЕНИЯ)
+        // ==========================================
+        function initDesktopPanel() {
+            // В реальном приложении здесь устанавливается WebRTC соединение.
+            // Для упрощения примера, панель управления сейчас отправляет глобальные команды.
+            // Чтобы увидеть реальные видео потоки, нужен сигнальный сервер WebRTC через Firestore.
+            console.log("Панель ПК инициализирована");
+            
+            // Демо-карточка (заглушка для места под камеру)
+            const grid = document.getElementById('video-grid');
+            grid.innerHTML = `
+                <div class="camera-card">
+                    <h3>Ожидание камер...</h3>
+                    <div style="width:100%; height:200px; background:#111; display:flex; align-items:center; justify-content:center; border-radius:5px;">
+                        WebRTC Stream
+                    </div>
+                </div>
+            `;
+        }
+
+        window.globalCommand = async function(action) {
+            // Отправляем команду всем телефонам через Firebase
+            try {
+                await setDoc(doc(db, "commands", "global"), {
+                    action: action,
+                    timestamp: new Date().getTime()
+                });
+                alert(`Команда "${action}" отправлена на все устройства.`);
+            } catch (e) {
+                console.error("Ошибка отправки команды:", e);
+                alert("Ошибка соединения с Firebase. Проверьте настройки конфигурации.");
+            }
+        };
+
+        window.showAllRecords = function() {
+            alert("В этой версии записи сохраняются локально на телефонах. Для централизованного хранилища нужно подключить Firebase Storage.");
+        };
+    </script>
+</body>
+</html>
