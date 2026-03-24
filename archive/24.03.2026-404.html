@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 | Sahifa topilmadi</title>
+    <link rel="shortcut icon" href="/favicon.ico">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#007AFF',
+                        secondary: '#5856D6',
+                        dark: '#050505',
+                        card: 'rgba(20, 20, 30, 0.6)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        body {
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Default Windows cursorni ham yashirish (faqat mouse bor qurilmalarda) */
+        @media (pointer: fine) {
+          html, body,
+          a, button,
+          input, textarea, select, label,
+          [role="button"], [type="button"], [type="submit"] {
+            cursor: none !important;
+          }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #007AFF, #5856D6);
+            border-radius: 4px;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            z-index: 9999;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease, opacity 0.15s ease;
+            opacity: 1;
+        }
+
+        .glass-card {
+            background: rgba(20, 20, 20, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 122, 255, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0, 122, 255, 0.3);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #007AFF, #00C6FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="custom-cursor" id="cursor">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.5 3.2L16.8 20.5L10.5 20.5L5.5 24L5.5 3.2Z" fill="black" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+    </div>
+
+    <!-- Minimal Nav (same style) -->
+    <nav class="fixed w-full z-50 top-0 left-0 p-3 sm:p-4">
+        <div class="max-w-6xl mx-auto glass-card rounded-2xl sm:rounded-full px-4 sm:px-6 py-2 sm:py-3 flex justify-between items-center">
+            <div class="text-lg sm:text-xl font-bold tracking-tighter">JA'FAR<span class="text-blue-500">.</span></div>
+            <a href="/" class="hidden sm:inline-flex items-center text-sm font-medium hover:text-blue-400 transition">
+                Bosh sahifa <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- 404 Content -->
+    <main class="min-h-screen flex items-center justify-center px-4 text-center">
+        <div class="max-w-2xl mx-auto">
+            <div class="glass-card p-8 sm:p-12 rounded-2xl">
+                <div class="text-blue-500 font-medium tracking-widest mb-3 uppercase text-xs sm:text-sm">XATOLIK</div>
+                <h1 class="text-6xl sm:text-7xl md:text-8xl font-bold mb-4">
+                    <span class="text-gradient">404</span>
+                </h1>
+                <p class="text-lg sm:text-xl text-gray-300 mb-8">
+                    Kechirasan, bu sahifa topilmadi yoki o‘chirilgan bo‘lishi mumkin.
+                </p>
+
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-medium transition duration-300 shadow-lg shadow-blue-500/30">
+                        Bosh sahifaga qaytish
+                    </a>
+                    <a href="/#projects" class="glass-card px-8 py-3 rounded-full font-medium hover:bg-white/10 transition duration-300">
+                        Loyihalarni ko‘rish
+                    </a>
+                </div>
+
+                <div class="mt-10 text-gray-500 text-sm">
+                    <i class="fas fa-link-slash mr-2"></i> URL noto‘g‘ri bo‘lishi mumkin
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // === Three.js Background Animation (same vibe) ===
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.querySelector('#bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.setZ(30);
+
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 2000;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 100;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.15,
+            color: 0x007AFF,
+            transparent: true,
+            opacity: 0.8,
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - window.innerWidth / 2);
+            mouseY = (event.clientY - window.innerHeight / 2);
+        });
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            targetX = mouseX * 0.001;
+            targetY = mouseY * 0.001;
+
+            const elapsedTime = clock.getElapsedTime();
+
+            particlesMesh.rotation.y = elapsedTime * 0.05;
+            particlesMesh.rotation.x = elapsedTime * 0.02;
+
+            particlesMesh.rotation.y += 0.05 * (targetX - particlesMesh.rotation.y);
+            particlesMesh.rotation.x += 0.05 * (targetY - particlesMesh.rotation.x);
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // === Custom Cursor Logic ===
+        const cursor = document.getElementById('cursor');
+
+        if (matchMedia('(pointer:fine)').matches) {
+            cursor.style.opacity = '1';
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+                cursor.style.opacity = '1';
+            });
+
+            document.addEventListener('mouseleave', () => {
+                cursor.style.opacity = '0';
+            });
+            document.addEventListener('mouseenter', () => {
+                cursor.style.opacity = '1';
+            });
+            window.addEventListener('blur', () => {
+                cursor.style.opacity = '0';
+            });
+            window.addEventListener('focus', () => {
+                cursor.style.opacity = '1';
+            });
+            document.addEventListener('visibilitychange', () => {
+                cursor.style.opacity = document.hidden ? '0' : '1';
+            });
+
+            const links = document.querySelectorAll('a, button');
+            links.forEach(link => {
+                link.addEventListener('mouseenter', () => {
+                    cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                });
+                link.addEventListener('mouseleave', () => {
+                    cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+                });
+            });
+        } else {
+            cursor.style.display = 'none';
+            document.body.style.cursor = 'auto';
+        }
+    </script>
+</body>
+</html>
