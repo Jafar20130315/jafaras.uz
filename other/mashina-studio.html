@@ -208,11 +208,14 @@
                 <span id="desktop-room-name">Комната: -</span>
             </div>
             <div class="desktop-actions">
-                <button class="btn-danger" onclick="app.viewerMode.globalCommand('record')">
+                <button class="btn-primary" onclick="app.viewerMode.globalCommand('record')">
                     <svg class="icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg> Запись всех
                 </button>
                 <button class="btn-primary" onclick="app.viewerMode.globalCommand('stop_record')" style="background: var(--surface-light);">
                     <svg class="icon"><rect x="6" y="6" width="12" height="12"/></svg> Стоп запись
+                </button>
+                <button class="btn-danger" onclick="app.viewerMode.deleteRoom()" style="margin-left: 10px;">
+                    <svg class="icon"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Удалить комнату
                 </button>
             </div>
         </div>
@@ -238,7 +241,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, query, orderBy, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, onSnapshot, collection, addDoc, query, orderBy, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA79oUjY6YAZ9-S34Sj16k5qllxXB4HaXk",
@@ -341,61 +344,68 @@
                 // Ожидание запроса WebRTC от зрителя (ПК)
                 listenForViewer() {
                     const signalRef = doc(db, `rooms/${app.roomId}/cameras`, app.userId);
+                    const viewerCandidatesCol = collection(signalRef, "viewerCandidates");
+                    const cameraCandidatesCol = collection(signalRef, "cameraCandidates");
+
                     onSnapshot(signalRef, async (snap) => {
                         const data = snap.data();
                         if (!data) return;
 
                         // Если зритель прислал Offer
                         if (data.offer && !this.peerConnection) {
-                            this.createPeerConnection(signalRef);
+                            this.peerConnection = new RTCPeerConnection(rtcConfig);
+                    
+                            // Добавляем локальные треки с камеры в соединение
+                            this.stream.getTracks().forEach(track => this.peerConnection.addTrack(track, this.stream));
+
+                            // Отправка наших ICE кандидатов зрителю в подколлекцию
+                            this.peerConnection.onicecandidate = async (event) => {
+                                if (event.candidate) {
+                                    await addDoc(cameraCandidatesCol, event.candidate.toJSON());
+                                }
+                            };
+
+                            this.peerConnection.onconnectionstatechange = () => {
+                                const state = this.peerConnection.connectionState;
+                                const badge = document.getElementById('cam-status');
+                                if (state === 'connected') {
+                                    badge.innerHTML = `<div class="status-dot" style="background: var(--success); animation:none;"></div> Трансляция идет`;
+                                } else if (state === 'disconnected' || state === 'failed') {
+                                    badge.innerHTML = `<div class="status-dot" style="background: var(--danger);"></div> Соединение потеряно`;
+                                    this.peerConnection = null; // Сброс для нового подключения
+                                    updateDoc(signalRef, { offer: null, answer: null });
+                                }
+                            };
+
+                            // Слушаем кандидаты от зрителя
+                            onSnapshot(viewerCandidatesCol, (snapshot) => {
+                                snapshot.docChanges().forEach(async (change) => {
+                                    if (change.type === "added") {
+                                        try {
+                                            await this.peerConnection.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                                        } catch(e) {}
+                                    }
+                                });
+                            });
+
+                            // Устанавливаем удаленное описание и отвечаем
                             await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
                             const answer = await this.peerConnection.createAnswer();
                             await this.peerConnection.setLocalDescription(answer);
-                            // Отправляем Answer назад
+                            
                             await updateDoc(signalRef, { answer: { type: answer.type, sdp: answer.sdp } });
-                        }
-
-                        // Если пришли новые ICE кандидаты от зрителя
-                        if (data.viewerCandidate && this.peerConnection) {
-                            try {
-                                await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.viewerCandidate));
-                                // Очищаем кандидата после добавления
-                                await updateDoc(signalRef, { viewerCandidate: null });
-                            } catch(e) {}
                         }
                     });
                 },
 
-                createPeerConnection(signalRef) {
-                    this.peerConnection = new RTCPeerConnection(rtcConfig);
-                    
-                    // Добавляем локальные треки с камеры в соединение
-                    this.stream.getTracks().forEach(track => this.peerConnection.addTrack(track, this.stream));
-
-                    // Отправка наших ICE кандидатов зрителю
-                    this.peerConnection.onicecandidate = async (event) => {
-                        if (event.candidate) {
-                            await updateDoc(signalRef, { 
-                                cameraCandidate: event.candidate.toJSON() 
-                            });
-                        }
-                    };
-
-                    this.peerConnection.onconnectionstatechange = () => {
-                        const state = this.peerConnection.connectionState;
-                        const badge = document.getElementById('cam-status');
-                        if (state === 'connected') {
-                            badge.innerHTML = `<div class="status-dot" style="background: var(--success); animation:none;"></div> Трансляция идет`;
-                        } else if (state === 'disconnected' || state === 'failed') {
-                            badge.innerHTML = `<div class="status-dot" style="background: var(--danger);"></div> Соединение потеряно`;
-                            this.peerConnection = null; // Сброс для нового подключения
-                            updateDoc(signalRef, { offer: null, answer: null });
-                        }
-                    };
-                },
-
                 listenForGlobalCommands() {
                     onSnapshot(doc(db, "rooms", app.roomId), (snap) => {
+                        if (!snap.exists()) {
+                            alert("Комната была удалена администратором.");
+                            window.location.reload();
+                            return;
+                        }
+
                         const data = snap.data();
                         if (data && data.globalCommand) {
                             const cmd = data.globalCommand;
@@ -457,7 +467,7 @@
                     card.id = `cam-card-${camData.id}`;
                     card.innerHTML = `
                         <div class="camera-feed">
-                            <video id="video-${camData.id}" autoplay playsinline controls></video>
+                            <video id="video-${camData.id}" autoplay playsinline controls muted></video>
                             <div id="loader-${camData.id}" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color: var(--text-muted);">Установка соединения (WebRTC)...</div>
                         </div>
                         <div class="camera-info">
@@ -472,6 +482,8 @@
                     const pc = new RTCPeerConnection(rtcConfig);
                     this.activeConnections[camId] = pc;
                     const signalRef = doc(db, `rooms/${app.roomId}/cameras`, camId);
+                    const viewerCandidatesCol = collection(signalRef, "viewerCandidates");
+                    const cameraCandidatesCol = collection(signalRef, "cameraCandidates");
 
                     // Получаем видео поток
                     pc.ontrack = (event) => {
@@ -486,34 +498,70 @@
                     const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
                     await pc.setLocalDescription(offer);
                     
-                    // Сбрасываем старые сигналы и отправляем новый Offer
-                    await updateDoc(signalRef, { 
-                        offer: { type: offer.type, sdp: offer.sdp },
-                        answer: null, cameraCandidate: null, viewerCandidate: null 
-                    });
+                    // Сбрасываем старые сигналы (если были) и отправляем новый Offer
+                    await updateDoc(signalRef, { offer: { type: offer.type, sdp: offer.sdp }, answer: null });
 
-                    // Слушаем ответ от камеры и ICE кандидатов
-                    onSnapshot(signalRef, async (snap) => {
-                        const data = snap.data();
-                        if (!data) return;
-
-                        if (data.answer && pc.signalingState !== "stable") {
-                            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-                        }
-
-                        if (data.cameraCandidate) {
-                            try {
-                                await pc.addIceCandidate(new RTCIceCandidate(data.cameraCandidate));
-                                await updateDoc(signalRef, { cameraCandidate: null });
-                            } catch(e) {}
-                        }
-                    });
-
+                    // Отправляем свои ICE кандидаты в базу
                     pc.onicecandidate = async (event) => {
                         if (event.candidate) {
-                            await updateDoc(signalRef, { viewerCandidate: event.candidate.toJSON() });
+                            await addDoc(viewerCandidatesCol, event.candidate.toJSON());
                         }
                     };
+
+                    // Слушаем ответ от камеры
+                    onSnapshot(signalRef, async (snap) => {
+                        const data = snap.data();
+                        if (data?.answer && pc.signalingState !== "stable") {
+                            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                        }
+                    });
+
+                    // Слушаем кандидаты камеры
+                    onSnapshot(cameraCandidatesCol, (snapshot) => {
+                        snapshot.docChanges().forEach(async (change) => {
+                            if (change.type === "added") {
+                                try {
+                                    await pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                                } catch(e) {}
+                            }
+                        });
+                    });
+                },
+
+                async deleteRoom() {
+                    if (!confirm("Вы уверены, что хотите полностью удалить эту комнату? Все камеры будут отключены.")) return;
+
+                    const roomRef = doc(db, "rooms", app.roomId);
+                    const camerasRef = collection(db, `rooms/${app.roomId}/cameras`);
+                    
+                    try {
+                        // Сначала удаляем все данные камер (Firestore требует ручного удаления подколлекций)
+                        const camSnapshot = await getDocs(camerasRef);
+                        for (const docSnap of camSnapshot.docs) {
+                            const camId = docSnap.id;
+                            
+                            // Очистка кандидатов WebRTC
+                            const clearCol = async (path) => {
+                                const colSnap = await getDocs(collection(db, path));
+                                colSnap.forEach(d => deleteDoc(d.ref));
+                            };
+                            
+                            await clearCol(`rooms/${app.roomId}/cameras/${camId}/viewerCandidates`);
+                            await clearCol(`rooms/${app.roomId}/cameras/${camId}/cameraCandidates`);
+                            
+                            // Удаляем саму камеру
+                            await deleteDoc(docSnap.ref);
+                        }
+
+                        // Удаляем главную комнату
+                        await deleteDoc(roomRef);
+                        alert("Комната успешно удалена и стерта из базы.");
+                        window.location.reload();
+
+                    } catch (e) {
+                        console.error("Ошибка при удалении:", e);
+                        alert("Не удалось удалить комнату.");
+                    }
                 },
 
                 startRecordingAll() {
