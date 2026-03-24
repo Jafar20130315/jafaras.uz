@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Surveillance Pro</title>
+    <title>Surveillance Pro - Режиссерский Пульт</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
@@ -60,9 +60,7 @@
         input:focus { border-color: var(--primary); }
 
         /* Авторизация (Login Room) */
-        #auth-view {
-            height: 100vh;
-        }
+        #auth-view { height: 100vh; }
         .login-card {
             background: var(--surface); padding: 2.5rem; border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; max-width: 400px;
@@ -94,62 +92,87 @@
             background: rgba(15, 23, 42, 0.8); padding: 1rem; border-radius: 16px; backdrop-filter: blur(10px);
         }
 
-        /* Черный экран */
         #sleep-overlay {
             position: fixed; inset: 0; background: #000; z-index: 1000;
             display: flex; align-items: center; justify-content: center; color: #333;
         }
 
-        /* Панель управления (Десктоп) */
-        #desktop-view { padding: 2rem; height: 100vh; display: flex; flex-direction: column; }
+        /* Панель управления (Десктоп - Студия) */
+        #desktop-view { padding: 1.5rem; height: 100vh; display: flex; flex-direction: column; }
         .top-bar {
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--surface); padding: 1rem 2rem; border-radius: 12px; margin-bottom: 2rem;
+            background: var(--surface); padding: 1rem 2rem; border-radius: 12px; margin-bottom: 1rem;
             border: 1px solid var(--border);
         }
         .room-info h2 { font-size: 1.2rem; margin-bottom: 0.2rem; }
         .room-info span { color: var(--text-muted); font-size: 0.9rem; }
-        
         .desktop-actions { display: flex; gap: 10px; }
         
-        .main-content { display: flex; gap: 2rem; flex: 1; min-height: 0; }
+        .main-content { display: flex; gap: 1.5rem; flex: 1; min-height: 0; }
         
-        /* Сетка камер */
-        .cameras-container { flex: 3; overflow-y: auto; }
-        .cameras-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem;
+        /* Студийное рабочее пространство */
+        .studio-workspace { flex: 3; display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+        
+        /* Главный монитор (Эфир) */
+        .main-monitor-wrapper {
+            position: relative; width: 100%; flex-grow: 1; min-height: 0;
+            background: #000; border-radius: 12px; border: 2px solid var(--border); 
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
+        #program-canvas {
+            max-width: 100%; max-height: 100%; object-fit: contain;
+            aspect-ratio: 16/9; /* Гарантированный ТВ стандарт */
+        }
+        .monitor-label {
+            position: absolute; top: 15px; left: 15px; padding: 4px 10px; border-radius: 6px;
+            font-size: 0.85rem; font-weight: 600; z-index: 10;
+        }
+        .badge-live { background: var(--danger); color: white; animation: pulse 2s infinite; }
+        .badge-program { background: var(--surface-light); color: white; border: 1px solid var(--border); }
+
+        /* Лента камер (Микшер) */
+        .thumbnails-container {
+            display: flex; gap: 10px; overflow-x: auto; padding: 5px; height: 160px; flex-shrink: 0;
+            outline: none; /* Убираем стандартную обводку при фокусе (Tab) */
+        }
+        .thumbnails-container::-webkit-scrollbar { height: 8px; }
+        .thumbnails-container::-webkit-scrollbar-thumb { background: var(--surface-light); border-radius: 4px; }
+        
         .camera-card {
-            background: var(--surface); border-radius: 12px; overflow: hidden;
-            border: 1px solid var(--border); display: flex; flex-direction: column;
+            width: 240px; height: 100%; background: var(--surface); border-radius: 8px; overflow: hidden;
+            border: 3px solid transparent; display: flex; flex-direction: column;
+            cursor: pointer; transition: 0.2s; position: relative;
         }
-        .camera-feed {
-            width: 100%; aspect-ratio: 16/9; background: #000; position: relative;
+        .camera-card:hover { border-color: var(--primary); }
+        .camera-card.active-cam { border-color: var(--danger); box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+        
+        .camera-feed { flex: 1; background: #000; position: relative; }
+        .camera-feed video { width: 100%; height: 100%; object-fit: contain; } /* Видео внутри карточки тоже не обрезается */
+        .camera-info { 
+            padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;
+            background: var(--surface); border-top: 1px solid var(--border);
         }
-        .camera-feed video { width: 100%; height: 100%; object-fit: cover; }
-        .camera-info { padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
         
         /* Боковая панель (Записи) */
         .sidebar {
             flex: 1; background: var(--surface); border-radius: 12px; padding: 1.5rem;
             border: 1px solid var(--border); display: flex; flex-direction: column;
-            min-width: 300px; max-width: 400px;
+            min-width: 280px; max-width: 350px;
         }
         .recordings-list { flex: 1; overflow-y: auto; margin-top: 1rem; display: flex; flex-direction: column; gap: 10px; }
         .record-item {
             background: var(--surface-light); padding: 1rem; border-radius: 8px;
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; flex-direction: column; gap: 8px;
         }
-        .record-item a { color: var(--primary); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+        .record-item a { color: var(--primary); text-decoration: none; font-size: 0.9rem; font-weight: 600; display: inline-block;}
         .record-item a:hover { text-decoration: underline; }
 
-        /* Иконки (SVG встроены) */
         .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     </style>
 </head>
 <body>
 
-    <!-- Экран входа (Создание/Вход в комнату) -->
+    <!-- Экран входа -->
     <div id="auth-view" class="flex items-center justify-center">
         <div class="login-card">
             <h1>Surveillance Pro</h1>
@@ -157,7 +180,7 @@
             <div class="flex-col gap-4">
                 <div>
                     <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem; display: block;">ID Комнаты (Логин)</label>
-                    <input type="text" id="room-id" placeholder="Например: myhome123" value="home1">
+                    <input type="text" id="room-id" placeholder="Например: myhome123" value="studio1">
                 </div>
                 <div>
                     <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem; display: block;">Пароль</label>
@@ -170,7 +193,7 @@
                     </button>
                     <button class="btn-primary" onclick="app.login('viewer')" style="background: var(--surface-light); border: 1px solid var(--border);">
                         <svg class="icon"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                        Панель ПК
+                        Пульт ТВ
                     </button>
                 </div>
             </div>
@@ -186,7 +209,7 @@
                     <div class="status-dot" style="background: var(--text-muted);"></div> Ожидание подключения...
                 </div>
                 <div class="status-badge hidden" id="rec-indicator" style="background: rgba(220,38,38,0.2); border: 1px solid var(--danger);">
-                    <div class="status-dot"></div> REC
+                    <div class="status-dot"></div> ЭФИР
                 </div>
             </div>
             <div class="camera-controls">
@@ -200,38 +223,42 @@
         </div>
     </div>
 
-    <!-- Десктопный вид (Панель управления) -->
+    <!-- Десктопный вид (Режиссерский пульт) -->
     <div id="desktop-view" class="hidden">
         <div class="top-bar">
             <div class="room-info">
-                <h2>Панель Управления</h2>
-                <span id="desktop-room-name">Комната: -</span>
+                <h2>Режиссерский Пульт</h2>
+                <span id="desktop-room-name">Комната: - | Переключение: Кликом или TAB</span>
             </div>
             <div class="desktop-actions">
-                <button class="btn-primary" onclick="app.viewerMode.globalCommand('record')">
-                    <svg class="icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg> Запись всех
-                </button>
-                <button class="btn-primary" onclick="app.viewerMode.globalCommand('stop_record')" style="background: var(--surface-light);">
-                    <svg class="icon"><rect x="6" y="6" width="12" height="12"/></svg> Стоп запись
+                <button class="btn-primary" id="btn-record-mix" onclick="app.viewerMode.toggleMasterRecord()">
+                    <svg class="icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg> Запись эфира
                 </button>
                 <button class="btn-danger" onclick="app.viewerMode.deleteRoom()" style="margin-left: 10px;">
-                    <svg class="icon"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Удалить комнату
+                    <svg class="icon"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Завершить сеанс
                 </button>
             </div>
         </div>
 
         <div class="main-content">
-            <div class="cameras-container">
-                <div class="cameras-grid" id="cameras-grid">
-                    <!-- Карточки камер добавляются динамически -->
+            <div class="studio-workspace">
+                <!-- Главный монитор -->
+                <div class="main-monitor-wrapper">
+                    <div class="monitor-label badge-program" id="live-badge">ПРОГРАММА (Ожидание)</div>
+                    <canvas id="program-canvas" width="1280" height="720"></canvas>
+                </div>
+                
+                <!-- Сетка камер (Микшер) -->
+                <div class="thumbnails-container" id="cameras-grid" tabindex="0">
+                    <!-- Карточки добавляются сюда -->
                 </div>
             </div>
             
             <div class="sidebar">
-                <h3>Локальные записи</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Сохраняются прямо в памяти ПК после остановки записи.</p>
+                <h3>Смонтированные видео</h3>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Результат переключения камер сохраняется здесь в формате .webm</p>
                 <div class="recordings-list" id="recordings-list">
-                    <p style="color:var(--text-muted); font-size:0.9rem;">Пока нет записей.</p>
+                    <p style="color:var(--text-muted); font-size:0.9rem;">Записей пока нет.</p>
                 </div>
             </div>
         </div>
@@ -241,7 +268,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, getDocs, onSnapshot, collection, addDoc, query, orderBy, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, onSnapshot, collection, addDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA79oUjY6YAZ9-S34Sj16k5qllxXB4HaXk",
@@ -256,10 +283,7 @@
         const auth = getAuth(fbApp);
         const db = getFirestore(fbApp);
 
-        // Конфигурация WebRTC STUN серверов (бесплатные серверы Google)
-        const rtcConfig = {
-            iceServers: [{ urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }]
-        };
+        const rtcConfig = { iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }] };
 
         const app = {
             roomId: null,
@@ -273,19 +297,15 @@
                 if (!this.roomId || !this.password) return alert("Введите ID комнаты и пароль");
 
                 try {
-                    // Анонимная авторизация для избежания конфликтов прав (если включены правила)
                     const userCred = await signInAnonymously(auth);
                     this.userId = userCred.user.uid;
                     this.role = role;
 
-                    // Проверка или создание комнаты
                     const roomRef = doc(db, "rooms", this.roomId);
                     const roomSnap = await getDoc(roomRef);
 
                     if (roomSnap.exists()) {
-                        if (roomSnap.data().password !== this.password) {
-                            return alert("Неверный пароль комнаты!");
-                        }
+                        if (roomSnap.data().password !== this.password) return alert("Неверный пароль комнаты!");
                     } else {
                         await setDoc(roomRef, { password: this.password, createdAt: Date.now(), globalCommand: null });
                     }
@@ -297,17 +317,17 @@
                         this.cameraMode.init();
                     } else {
                         document.getElementById('desktop-view').classList.remove('hidden');
-                        document.getElementById('desktop-room-name').innerText = `Комната: ${this.roomId}`;
+                        document.getElementById('desktop-room-name').innerText = `Комната: ${this.roomId} | Переключение: Кликом или TAB`;
                         this.viewerMode.init();
                     }
                 } catch (error) {
                     console.error("Ошибка входа:", error);
-                    alert("Ошибка соединения с сервером. Проверьте консоль.");
+                    alert("Ошибка соединения с сервером.");
                 }
             },
 
             // ==========================================
-            // ЛОГИКА КАМЕРЫ (Мобильный)
+            // КАМЕРА (Телефон)
             // ==========================================
             cameraMode: {
                 stream: null,
@@ -316,32 +336,26 @@
 
                 async init() {
                     try {
-                        // Запрашиваем доступ к камере
                         this.stream = await navigator.mediaDevices.getUserMedia({ 
                             video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, 
                             audio: true 
                         });
                         document.getElementById('local-video').srcObject = this.stream;
                         
-                        // Регистрируем камеру в БД
                         const camRef = doc(db, `rooms/${app.roomId}/cameras`, app.userId);
                         await setDoc(camRef, {
                             id: app.userId,
-                            name: `Камера ${Math.floor(Math.random() * 1000)}`,
-                            status: 'online',
-                            timestamp: Date.now()
+                            name: `Камера ${Math.floor(Math.random() * 100)}`,
+                            status: 'online', timestamp: Date.now()
                         });
 
                         this.listenForViewer();
                         this.listenForGlobalCommands();
-
                     } catch (e) {
-                        alert("Ошибка доступа к камере. Убедитесь, что даны разрешения.");
-                        console.error(e);
+                        alert("Ошибка доступа к камере.");
                     }
                 },
 
-                // Ожидание запроса WebRTC от зрителя (ПК)
                 listenForViewer() {
                     const signalRef = doc(db, `rooms/${app.roomId}/cameras`, app.userId);
                     const viewerCandidatesCol = collection(signalRef, "viewerCandidates");
@@ -351,48 +365,36 @@
                         const data = snap.data();
                         if (!data) return;
 
-                        // Если зритель прислал Offer
                         if (data.offer && !this.peerConnection) {
                             this.peerConnection = new RTCPeerConnection(rtcConfig);
-                    
-                            // Добавляем локальные треки с камеры в соединение
                             this.stream.getTracks().forEach(track => this.peerConnection.addTrack(track, this.stream));
 
-                            // Отправка наших ICE кандидатов зрителю в подколлекцию
                             this.peerConnection.onicecandidate = async (event) => {
-                                if (event.candidate) {
-                                    await addDoc(cameraCandidatesCol, event.candidate.toJSON());
-                                }
+                                if (event.candidate) await addDoc(cameraCandidatesCol, event.candidate.toJSON());
                             };
 
                             this.peerConnection.onconnectionstatechange = () => {
                                 const state = this.peerConnection.connectionState;
                                 const badge = document.getElementById('cam-status');
-                                if (state === 'connected') {
-                                    badge.innerHTML = `<div class="status-dot" style="background: var(--success); animation:none;"></div> Трансляция идет`;
-                                } else if (state === 'disconnected' || state === 'failed') {
-                                    badge.innerHTML = `<div class="status-dot" style="background: var(--danger);"></div> Соединение потеряно`;
-                                    this.peerConnection = null; // Сброс для нового подключения
+                                if (state === 'connected') badge.innerHTML = `<div class="status-dot" style="background: var(--success); animation:none;"></div> В сети`;
+                                else if (state === 'disconnected' || state === 'failed') {
+                                    badge.innerHTML = `<div class="status-dot" style="background: var(--danger);"></div> Отключено`;
+                                    this.peerConnection = null;
                                     updateDoc(signalRef, { offer: null, answer: null });
                                 }
                             };
 
-                            // Слушаем кандидаты от зрителя
                             onSnapshot(viewerCandidatesCol, (snapshot) => {
                                 snapshot.docChanges().forEach(async (change) => {
                                     if (change.type === "added") {
-                                        try {
-                                            await this.peerConnection.addIceCandidate(new RTCIceCandidate(change.doc.data()));
-                                        } catch(e) {}
+                                        try { await this.peerConnection.addIceCandidate(new RTCIceCandidate(change.doc.data())); } catch(e) {}
                                     }
                                 });
                             });
 
-                            // Устанавливаем удаленное описание и отвечаем
                             await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
                             const answer = await this.peerConnection.createAnswer();
                             await this.peerConnection.setLocalDescription(answer);
-                            
                             await updateDoc(signalRef, { answer: { type: answer.type, sdp: answer.sdp } });
                         }
                     });
@@ -401,19 +403,14 @@
                 listenForGlobalCommands() {
                     onSnapshot(doc(db, "rooms", app.roomId), (snap) => {
                         if (!snap.exists()) {
-                            alert("Комната была удалена администратором.");
-                            window.location.reload();
-                            return;
+                            alert("Сеанс завершен режиссером.");
+                            window.location.reload(); return;
                         }
-
                         const data = snap.data();
                         if (data && data.globalCommand) {
-                            const cmd = data.globalCommand;
-                            if (cmd.action === 'record') {
-                                document.getElementById('rec-indicator').classList.remove('hidden');
-                            } else if (cmd.action === 'stop_record') {
-                                document.getElementById('rec-indicator').classList.add('hidden');
-                            }
+                            // Если включена запись, зажигаем красную лампочку
+                            if (data.globalCommand.action === 'record') document.getElementById('rec-indicator').classList.remove('hidden');
+                            else if (data.globalCommand.action === 'stop_record') document.getElementById('rec-indicator').classList.add('hidden');
                         }
                     });
                 },
@@ -431,14 +428,29 @@
             },
 
             // ==========================================
-            // ЛОГИКА ПАНЕЛИ УПРАВЛЕНИЯ (ПК)
+            // ПУЛЬТ РЕЖИССЕРА (ПК)
             // ==========================================
             viewerMode: {
-                activeConnections: {}, // Хранит RTCPeerConnection для каждой камеры
-                recorders: {}, // Хранит MediaRecorder для каждой камеры
+                activeConnections: {}, 
+                cameraIds: [], // Массив для переключения по TAB
+                activeCamId: null, // Текущая камера на главном мониторе
+                
+                // Аудио микшер и запись
+                audioCtx: null,
+                audioDest: null,
+                audioSources: {},
+                masterRecorder: null,
+                recordedChunks: [],
+                isRecording: false,
 
                 init() {
+                    // Инициализация Web Audio API для сведения звука
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.audioDest = this.audioCtx.createMediaStreamDestination();
+                    
                     this.listenForCameras();
+                    this.setupKeyboardSwitching();
+                    this.startStudioRenderLoop();
                 },
 
                 listenForCameras() {
@@ -449,12 +461,22 @@
                             const camId = camData.id;
 
                             if (change.type === "added") {
+                                this.cameraIds.push(camId);
                                 this.renderCameraCard(camData);
                                 this.connectToCamera(camId);
+                                // Если это первая камера, выводим её в эфир
+                                if (!this.activeCamId) this.switchCamera(camId);
                             }
                             if (change.type === "removed") {
+                                this.cameraIds = this.cameraIds.filter(id => id !== camId);
                                 document.getElementById(`cam-card-${camId}`)?.remove();
                                 if(this.activeConnections[camId]) this.activeConnections[camId].close();
+                                if(this.audioSources[camId]) this.audioSources[camId].disconnect();
+                                
+                                // Если отключилась активная камера, переключаем на следующую
+                                if (this.activeCamId === camId) {
+                                    this.switchCamera(this.cameraIds.length > 0 ? this.cameraIds[0] : null);
+                                }
                             }
                         });
                     });
@@ -465,14 +487,16 @@
                     const card = document.createElement('div');
                     card.className = 'camera-card';
                     card.id = `cam-card-${camData.id}`;
+                    card.onclick = () => this.switchCamera(camData.id); // Клик для вывода в эфир
+                    
                     card.innerHTML = `
                         <div class="camera-feed">
-                            <video id="video-${camData.id}" autoplay playsinline controls muted></video>
-                            <div id="loader-${camData.id}" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color: var(--text-muted);">Установка соединения (WebRTC)...</div>
+                            <!-- Звук на карточках отключен, мы сводим его через AudioContext -->
+                            <video id="video-${camData.id}" autoplay playsinline muted></video>
+                            <div id="loader-${camData.id}" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color: var(--text-muted); font-size:0.8rem; text-align:center;">Подключение...</div>
                         </div>
                         <div class="camera-info">
-                            <span style="font-weight:600;">${camData.name}</span>
-                            <span style="font-size:0.8rem; background:rgba(16,185,129,0.2); color:var(--success); padding:2px 8px; border-radius:12px;">Online</span>
+                            <span style="font-weight:600; font-size:0.9rem;">${camData.name}</span>
                         </div>
                     `;
                     grid.appendChild(card);
@@ -482,33 +506,32 @@
                     const pc = new RTCPeerConnection(rtcConfig);
                     this.activeConnections[camId] = pc;
                     const signalRef = doc(db, `rooms/${app.roomId}/cameras`, camId);
-                    const viewerCandidatesCol = collection(signalRef, "viewerCandidates");
-                    const cameraCandidatesCol = collection(signalRef, "cameraCandidates");
 
-                    // Получаем видео поток
                     pc.ontrack = (event) => {
                         const videoEl = document.getElementById(`video-${camId}`);
                         if (videoEl) {
-                            videoEl.srcObject = event.streams[0];
+                            if (!videoEl.srcObject) videoEl.srcObject = new MediaStream();
+                            videoEl.srcObject.addTrack(event.track);
                             document.getElementById(`loader-${camId}`).style.display = 'none';
+                            
+                            // Если это аудио трек, подключаем его к микшеру
+                            if (event.track.kind === 'audio') {
+                                const source = this.audioCtx.createMediaStreamSource(new MediaStream([event.track]));
+                                this.audioSources[camId] = source;
+                                // Если эта камера сейчас в эфире, выводим её звук
+                                if (this.activeCamId === camId) source.connect(this.audioDest);
+                            }
                         }
                     };
 
-                    // Создаем Offer
                     const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
                     await pc.setLocalDescription(offer);
-                    
-                    // Сбрасываем старые сигналы (если были) и отправляем новый Offer
                     await updateDoc(signalRef, { offer: { type: offer.type, sdp: offer.sdp }, answer: null });
 
-                    // Отправляем свои ICE кандидаты в базу
                     pc.onicecandidate = async (event) => {
-                        if (event.candidate) {
-                            await addDoc(viewerCandidatesCol, event.candidate.toJSON());
-                        }
+                        if (event.candidate) await addDoc(collection(signalRef, "viewerCandidates"), event.candidate.toJSON());
                     };
 
-                    // Слушаем ответ от камеры
                     onSnapshot(signalRef, async (snap) => {
                         const data = snap.data();
                         if (data?.answer && pc.signalingState !== "stable") {
@@ -516,120 +539,173 @@
                         }
                     });
 
-                    // Слушаем кандидаты камеры
-                    onSnapshot(cameraCandidatesCol, (snapshot) => {
+                    onSnapshot(collection(signalRef, "cameraCandidates"), (snapshot) => {
                         snapshot.docChanges().forEach(async (change) => {
                             if (change.type === "added") {
-                                try {
-                                    await pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
-                                } catch(e) {}
+                                try { await pc.addIceCandidate(new RTCIceCandidate(change.doc.data())); } catch(e) {}
                             }
                         });
                     });
                 },
 
-                async deleteRoom() {
-                    if (!confirm("Вы уверены, что хотите полностью удалить эту комнату? Все камеры будут отключены.")) return;
+                // Переключение камер (Микшер)
+                switchCamera(camId) {
+                    // Отключаем звук старой камеры от эфира
+                    if (this.activeCamId && this.audioSources[this.activeCamId]) {
+                        this.audioSources[this.activeCamId].disconnect(this.audioDest);
+                        document.getElementById(`cam-card-${this.activeCamId}`)?.classList.remove('active-cam');
+                    }
 
-                    const roomRef = doc(db, "rooms", app.roomId);
-                    const camerasRef = collection(db, `rooms/${app.roomId}/cameras`);
+                    this.activeCamId = camId;
+
+                    // Подключаем звук новой камеры и зажигаем рамку
+                    if (this.activeCamId) {
+                        if (this.audioSources[this.activeCamId]) this.audioSources[this.activeCamId].connect(this.audioDest);
+                        document.getElementById(`cam-card-${this.activeCamId}`)?.classList.add('active-cam');
+                        document.getElementById('live-badge').innerText = `ПРОГРАММА (В Эфире)`;
+                        document.getElementById('live-badge').className = "monitor-label badge-live";
+                    } else {
+                        document.getElementById('live-badge').innerText = `ПРОГРАММА (Нет Сигнала)`;
+                        document.getElementById('live-badge').className = "monitor-label badge-program";
+                    }
+                },
+
+                // Переключение клавишей TAB
+                setupKeyboardSwitching() {
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Tab' && this.cameraIds.length > 0) {
+                            e.preventDefault(); // Предотвращаем скролл страницы
+                            const currentIndex = this.cameraIds.indexOf(this.activeCamId);
+                            const nextIndex = (currentIndex + 1) % this.cameraIds.length;
+                            this.switchCamera(this.cameraIds[nextIndex]);
+                        }
+                    });
+                },
+
+                // Отрисовка на главном мониторе 30 кадров в секунду
+                startStudioRenderLoop() {
+                    const canvas = document.getElementById('program-canvas');
+                    const ctx = canvas.getContext('2d');
                     
-                    try {
-                        // Сначала удаляем все данные камер (Firestore требует ручного удаления подколлекций)
-                        const camSnapshot = await getDocs(camerasRef);
-                        for (const docSnap of camSnapshot.docs) {
-                            const camId = docSnap.id;
-                            
-                            // Очистка кандидатов WebRTC
-                            const clearCol = async (path) => {
-                                const colSnap = await getDocs(collection(db, path));
-                                colSnap.forEach(d => deleteDoc(d.ref));
-                            };
-                            
-                            await clearCol(`rooms/${app.roomId}/cameras/${camId}/viewerCandidates`);
-                            await clearCol(`rooms/${app.roomId}/cameras/${camId}/cameraCandidates`);
-                            
-                            // Удаляем саму камеру
-                            await deleteDoc(docSnap.ref);
+                    const render = () => {
+                        // Заливаем фон (создает черные полосы для вертикальных видео)
+                        ctx.fillStyle = '#0f172a';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        if (this.activeCamId) {
+                            const video = document.getElementById(`video-${this.activeCamId}`);
+                            if (video && video.readyState >= 2) {
+                                // Математика для сохранения пропорций (Aspect Ratio 16:9)
+                                const hRatio = canvas.width / video.videoWidth;
+                                const vRatio = canvas.height / video.videoHeight;
+                                const ratio  = Math.min(hRatio, vRatio);
+                                
+                                const centerShift_x = (canvas.width - video.videoWidth*ratio) / 2;
+                                const centerShift_y = (canvas.height - video.videoHeight*ratio) / 2;  
+                                
+                                // Рисуем кадр камеры по центру главного экрана
+                                ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight,
+                                              centerShift_x, centerShift_y, video.videoWidth*ratio, video.videoHeight*ratio);
+                            }
+                        } else {
+                            // Экран настройки
+                            ctx.fillStyle = '#334155';
+                            ctx.font = '30px Inter';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('СИГНАЛ ОТСУТСТВУЕТ', canvas.width/2, canvas.height/2);
                         }
+                        requestAnimationFrame(render);
+                    };
+                    render();
+                },
 
-                        // Удаляем главную комнату
-                        await deleteDoc(roomRef);
-                        alert("Комната успешно удалена и стерта из базы.");
-                        window.location.reload();
+                // Логика Записи Сведенного Эфира (Master Record)
+                async toggleMasterRecord() {
+                    if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
 
-                    } catch (e) {
-                        console.error("Ошибка при удалении:", e);
-                        alert("Не удалось удалить комнату.");
+                    const btn = document.getElementById('btn-record-mix');
+
+                    if (!this.isRecording) {
+                        // НАЧАЛО ЗАПИСИ
+                        const canvas = document.getElementById('program-canvas');
+                        // Захватываем видео с канваса (30 FPS)
+                        const canvasStream = canvas.captureStream(30);
+                        
+                        // Создаем финальный поток: Видео с канваса + Звук с аудио-микшера
+                        const tracks = [...canvasStream.getVideoTracks(), ...this.audioDest.stream.getAudioTracks()];
+                        const masterStream = new MediaStream(tracks);
+
+                        this.masterRecorder = new MediaRecorder(masterStream, { mimeType: 'video/webm' });
+                        this.recordedChunks = [];
+                        
+                        this.masterRecorder.ondataavailable = e => { if (e.data.size > 0) this.recordedChunks.push(e.data); };
+                        this.masterRecorder.onstop = () => this.saveMasterRecording();
+                        
+                        this.masterRecorder.start();
+                        this.isRecording = true;
+                        
+                        // Отправляем сигнал на телефоны, чтобы они знали, что их пишут
+                        await updateDoc(doc(db, "rooms", app.roomId), { globalCommand: { action: 'record', ts: Date.now() } });
+                        
+                        btn.innerHTML = `<svg class="icon"><rect x="6" y="6" width="12" height="12"/></svg> Остановить запись`;
+                        btn.className = 'btn-danger';
+                        
+                    } else {
+                        // ОСТАНОВКА ЗАПИСИ
+                        this.masterRecorder.stop();
+                        this.isRecording = false;
+                        
+                        await updateDoc(doc(db, "rooms", app.roomId), { globalCommand: { action: 'stop_record', ts: Date.now() } });
+                        
+                        btn.innerHTML = `<svg class="icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg> Запись эфира`;
+                        btn.className = 'btn-primary';
                     }
                 },
 
-                startRecordingAll() {
-                    for (const camId in this.activeConnections) {
-                        const videoEl = document.getElementById(`video-${camId}`);
-                        if (videoEl && videoEl.srcObject) {
-                            const stream = videoEl.srcObject;
-                            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-                            const chunks = [];
-                            
-                            recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
-                            recorder.onstop = () => this.saveLocalRecording(camId, chunks);
-                            
-                            recorder.start();
-                            this.recorders[camId] = recorder;
-                        }
-                    }
-                },
-
-                stopRecordingAll() {
-                    for (const camId in this.recorders) {
-                        if (this.recorders[camId].state === 'recording') {
-                            this.recorders[camId].stop();
-                        }
-                    }
-                    this.recorders = {};
-                },
-
-                saveLocalRecording(camId, chunks) {
-                    const blob = new Blob(chunks, { type: 'video/webm' });
+                saveMasterRecording() {
+                    const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
                     const url = URL.createObjectURL(blob);
                     const list = document.getElementById('recordings-list');
                     
-                    if (list.innerHTML.includes('Пока нет записей')) {
-                        list.innerHTML = '';
-                    }
+                    if (list.innerHTML.includes('Записей пока нет')) list.innerHTML = '';
 
                     const time = new Date().toLocaleTimeString();
-                    const shortCamId = camId.substring(0, 5);
                     
                     list.innerHTML += `
                         <div class="record-item">
                             <div>
-                                <svg class="icon" style="vertical-align: middle; margin-right: 5px; color: var(--danger);"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                                <span style="font-size: 0.9rem;">Камера ${shortCamId} (${time})</span>
+                                <span style="font-weight: 600; font-size: 0.95rem;">🎬 Мастер-Эфир</span><br>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Завершено: ${time}</span>
                             </div>
-                            <a href="${url}" download="record_cam_${shortCamId}_${Date.now()}.webm">Скачать</a>
+                            <a href="${url}" download="Director_Cut_${Date.now()}.webm">💾 Скачать видео (.webm)</a>
                         </div>
                     `;
                 },
 
-                async globalCommand(action) {
-                    // Сначала запускаем/останавливаем локальную запись на ПК
-                    if (action === 'record') {
-                        this.startRecordingAll();
-                    } else if (action === 'stop_record') {
-                        this.stopRecordingAll();
-                    }
-
-                    // Затем отправляем сигнал в базу, чтобы на телефоне загорелся "REC"
-                    await updateDoc(doc(db, "rooms", app.roomId), {
-                        globalCommand: { action: action, ts: Date.now() }
-                    });
+                async deleteRoom() {
+                    if (!confirm("Завершить сеанс? Все камеры будут отключены.")) return;
+                    const roomRef = doc(db, "rooms", app.roomId);
+                    const camerasRef = collection(db, `rooms/${app.roomId}/cameras`);
+                    try {
+                        const camSnapshot = await getDocs(camerasRef);
+                        for (const docSnap of camSnapshot.docs) {
+                            const camId = docSnap.id;
+                            const clearCol = async (path) => {
+                                const colSnap = await getDocs(collection(db, path));
+                                colSnap.forEach(d => deleteDoc(d.ref));
+                            };
+                            await clearCol(`rooms/${app.roomId}/cameras/${camId}/viewerCandidates`);
+                            await clearCol(`rooms/${app.roomId}/cameras/${camId}/cameraCandidates`);
+                            await deleteDoc(docSnap.ref);
+                        }
+                        await deleteDoc(roomRef);
+                        alert("Сеанс успешно завершен.");
+                        window.location.reload();
+                    } catch (e) { alert("Ошибка завершения сеанса."); }
                 }
             }
         };
 
-        // Делаем объект app глобальным для вызовов из HTML
         window.app = app;
     </script>
 </body>
