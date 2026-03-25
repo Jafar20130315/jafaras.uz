@@ -4,19 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Surveillance Pro - Broadcast Studio</title>
+    <!-- Подключаем Three.js для 3D фона -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
         /* Премиальная профессиональная тема */
         :root {
-            --bg-main: #141417; 
-            --surface: #1e1e24; 
-            --surface-hover: #2a2a32;
-            --border: #33333b;
+            --bg-main: #0a0a0c; 
+            --surface: rgba(30, 30, 36, 0.6); 
+            --surface-hover: rgba(42, 42, 50, 0.8);
+            --border: rgba(255, 255, 255, 0.08);
             --text-main: #f4f4f5;
             --text-muted: #a1a1aa;
             
             --accent: #4f46e5; 
+            --accent-glow: rgba(79, 70, 229, 0.4);
             --accent-hover: #4338ca;
             --danger: #e11d48; 
             --success: #059669;
@@ -38,31 +41,36 @@
         button {
             padding: 10px 18px; border: 1px solid transparent; border-radius: 8px;
             font-family: inherit; font-weight: 500; font-size: 0.9rem; cursor: pointer;
-            transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            user-select: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            user-select: none; text-decoration: none;
         }
-        button:active { transform: translateY(1px); }
-        .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
-        .btn-primary:hover { background: var(--accent-hover); }
+        button:active { transform: translateY(2px); }
+        .btn-primary { 
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); 
+            color: white; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 20px var(--accent-glow); 
+        }
+        .btn-primary:hover { box-shadow: 0 12px 25px rgba(59, 130, 246, 0.6); filter: brightness(1.1); }
+        
         .btn-danger { background: var(--danger); color: white; }
-        .btn-secondary { background: var(--surface); border-color: var(--border); color: var(--text-main); }
-        .btn-secondary:hover { background: var(--surface-hover); }
+        .btn-secondary { background: var(--surface); border-color: var(--border); color: var(--text-main); backdrop-filter: blur(10px); }
+        .btn-secondary:hover { background: var(--surface-hover); border-color: rgba(255,255,255,0.2); }
         .btn-icon-small { padding: 4px 6px; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid transparent; border-radius: 4px; color: var(--text-muted); }
         .btn-icon-small:hover { background: rgba(255,255,255,0.1); color: white; }
         
         input {
             width: 100%; padding: 12px 16px; border-radius: 8px;
-            background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border);
             color: white; font-size: 1rem; outline: none; transition: 0.2s;
-            font-family: inherit;
+            font-family: inherit; backdrop-filter: blur(5px);
         }
-        input:focus { border-color: var(--accent); background: rgba(0,0,0,0.4); }
+        input:focus { border-color: #3b82f6; background: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
 
         /* Выпадающее меню (Три точки) */
         .dropdown { position: relative; display: inline-block; }
         .dropdown-content {
             display: none; position: absolute; right: 0; bottom: 120%; margin-bottom: 5px;
-            background-color: var(--surface-hover); min-width: 140px;
+            background-color: #1e1e24; min-width: 140px;
             box-shadow: 0px 8px 20px 0px rgba(0,0,0,0.6); z-index: 100;
             border-radius: 8px; border: 1px solid var(--border); overflow: hidden;
         }
@@ -83,7 +91,7 @@
         }
         .toast {
             padding: 14px 20px; border-radius: 10px; color: white; font-size: 0.9rem; font-weight: 500;
-            background: var(--surface); border: 1px solid var(--border);
+            background: #1e1e24; border: 1px solid var(--border);
             animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             display: flex; align-items: center; gap: 12px; max-width: 380px; pointer-events: auto;
@@ -94,56 +102,110 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         /* --- ЛЕНДИНГ (Landing Page) --- */
+        #landing-wrapper { position: relative; width: 100%; height: 100vh; overflow: hidden; background: #000; }
+        
+        /* 3D Canvas Background */
+        #bg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+        
         #landing-view {
-            height: 100vh; overflow-y: auto; background: radial-gradient(circle at top center, #1e1e24 0%, #141417 100%);
-            display: flex; flex-direction: column; align-items: center;
+            position: relative; z-index: 1; width: 100%; height: 100vh; overflow-y: auto; overflow-x: hidden;
+            scroll-behavior: smooth;
         }
+
+        .landing-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        
         .landing-nav {
-            width: 100%; max-width: 1200px; padding: 24px; display: flex; justify-content: space-between; align-items: center;
+            padding: 24px 0; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 40px;
         }
-        .landing-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; }
-        .landing-hero {
-            max-width: 800px; text-align: center; margin-top: 80px; padding: 0 20px;
+        .landing-logo { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; }
+        
+        .hero-section {
+            text-align: center; padding: 80px 0 120px; position: relative;
         }
-        .landing-hero h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 24px; letter-spacing: -1px; }
-        .landing-hero h1 span { color: var(--accent); }
-        .landing-hero p { font-size: 1.2rem; color: var(--text-muted); margin-bottom: 40px; line-height: 1.5; }
-        .landing-features {
-            display: flex; gap: 20px; justify-content: center; margin-top: 60px; flex-wrap: wrap; padding: 0 20px 60px;
+        .hero-badge {
+            display: inline-block; padding: 6px 14px; border-radius: 30px; background: rgba(79, 70, 229, 0.15);
+            border: 1px solid rgba(79, 70, 229, 0.3); color: #818cf8; font-size: 0.85rem; font-weight: 600;
+            margin-bottom: 24px; letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .hero-section h1 {
+            font-size: 4.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 24px; letter-spacing: -2px;
+            background: linear-gradient(to right, #ffffff, #a1a1aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero-section h1 span { 
+            background: linear-gradient(135deg, #818cf8 0%, #3b82f6 100%); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
+        .hero-section p {
+            font-size: 1.25rem; color: var(--text-muted); max-width: 650px; margin: 0 auto 40px; line-height: 1.6; font-weight: 300;
+        }
+
+        .section-title { text-align: center; margin-bottom: 60px; }
+        .section-title h2 { font-size: 2.5rem; font-weight: 700; margin-bottom: 16px; letter-spacing: -1px; }
+        .section-title p { color: var(--text-muted); font-size: 1.1rem; }
+
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; padding-bottom: 100px;
         }
         .feature-card {
-            background: rgba(30, 30, 36, 0.5); border: 1px solid var(--border); padding: 24px; border-radius: 16px;
-            width: 280px; text-align: left; backdrop-filter: blur(10px);
+            background: rgba(20, 20, 24, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 32px; border-radius: 24px;
+            backdrop-filter: blur(20px); transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+            position: relative; overflow: hidden;
         }
-        .feature-card svg { width: 32px; height: 32px; color: var(--accent); margin-bottom: 16px; }
-        .feature-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
-        .feature-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.4; }
+        .feature-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.03), transparent 40%);
+            z-index: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+        }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-card:hover { transform: translateY(-5px); border-color: rgba(79, 70, 229, 0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .feature-card svg { width: 36px; height: 36px; color: #818cf8; margin-bottom: 20px; position: relative; z-index: 1; }
+        .feature-card h3 { font-size: 1.3rem; margin-bottom: 12px; font-weight: 600; position: relative; z-index: 1; }
+        .feature-card p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; position: relative; z-index: 1; }
+
+        .how-it-works { padding: 100px 0; border-top: 1px solid rgba(255,255,255,0.05); background: linear-gradient(to bottom, transparent, rgba(10,10,12,0.8)); }
+        .steps-container { display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap; position: relative; }
+        .step-box { flex: 1; min-width: 250px; text-align: center; position: relative; z-index: 1; }
+        .step-num { 
+            width: 60px; height: 60px; background: #1e1e24; border: 2px solid rgba(79, 70, 229, 0.5); 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            font-size: 1.5rem; font-weight: 800; color: #818cf8; margin: 0 auto 24px; box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
+        }
+        .step-box h3 { font-size: 1.2rem; margin-bottom: 12px; }
+        .step-box p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
+        
+        .cta-section { text-align: center; padding: 120px 0; position: relative; overflow: hidden; border-top: 1px solid rgba(255,255,255,0.05); }
+        .cta-section h2 { font-size: 3rem; font-weight: 800; margin-bottom: 24px; letter-spacing: -1px; }
+        
+        .footer { padding: 40px 0; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); color: var(--text-muted); font-size: 0.85rem; }
 
         @media (max-width: 768px) {
-            .landing-hero h1 { font-size: 2.5rem; }
-            .landing-hero p { font-size: 1rem; }
+            .hero-section h1 { font-size: 3rem; }
+            .hero-section p { font-size: 1.05rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .section-title h2 { font-size: 2rem; }
         }
 
         /* Экран Авторизации */
-        #auth-view { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1e1e24 0%, #141417 100%); }
+        #auth-view { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1e1e24 0%, #141417 100%); position: relative; z-index: 10;}
         .login-card {
-            background: rgba(30, 30, 36, 0.7); backdrop-filter: blur(20px);
-            padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4); width: 100%; max-width: 420px; margin: 20px;
+            background: rgba(20, 20, 24, 0.8); backdrop-filter: blur(30px);
+            padding: 35px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5); width: 100%; max-width: 420px; margin: 20px;
         }
-        .login-card h1 { font-size: 1.7rem; font-weight: 600; text-align: center; margin-bottom: 8px; letter-spacing: -0.5px; }
-        .login-card p { color: var(--text-muted); text-align: center; margin-bottom: 20px; font-size: 0.95rem; }
+        .login-card h1 { font-size: 1.8rem; font-weight: 700; text-align: center; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .login-card p { color: var(--text-muted); text-align: center; margin-bottom: 25px; font-size: 0.95rem; }
         
-        .tabs-header { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 10px; border: 1px solid var(--border); }
-        .tab-btn { flex: 1; padding: 10px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
-        .tab-btn.active { background: var(--surface); color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: 1px solid var(--border); }
+        .tabs-header { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .tab-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { background: var(--surface-hover); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); }
         
-        .input-group { margin-bottom: 16px; }
-        .input-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-        .auth-action-btn { width: 100%; padding: 14px; margin-top: 10px; font-size: 1rem; }
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .auth-action-btn { width: 100%; padding: 14px; margin-top: 10px; font-size: 1rem; border-radius: 12px; }
 
         /* Мобильный вид (Камера) */
-        #mobile-view { height: 100vh; position: relative; background: #000; }
+        #mobile-view { height: 100vh; position: relative; background: #000; z-index: 10;}
         #local-video { width: 100%; height: 100%; object-fit: cover; }
         .camera-overlay {
             position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between;
@@ -166,28 +228,28 @@
             backdrop-filter: blur(10px); color: white; padding: 8px 16px; border-radius: 30px; font-size: 0.9rem;
             font-weight: 500; width: 200px; text-align: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .mobile-name-input:focus { border-color: var(--accent); }
+        .mobile-name-input:focus { border-color: #3b82f6; width: 220px; }
 
         .mobile-controls { display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 400px; }
         .mobile-controls button {
-            flex: 1; background: rgba(30,30,36,0.9); backdrop-filter: blur(10px);
-            display: flex; flex-direction: column; gap: 6px; padding: 12px 5px; font-size: 0.75rem; border-radius: 12px;
+            flex: 1; background: rgba(30,30,36,0.9); backdrop-filter: blur(10px); border-color: rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; gap: 6px; padding: 12px 5px; font-size: 0.75rem; border-radius: 16px;
         }
         .mobile-controls svg { width: 22px; height: 22px; }
 
         #sleep-overlay { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; align-items: center; justify-content: center; color: #222; }
 
         /* ПАНЕЛЬ УПРАВЛЕНИЯ (Студия) */
-        #desktop-view { padding: 20px; height: 100vh; display: flex; flex-direction: column; gap: 20px; }
+        #desktop-view { padding: 20px; height: 100vh; display: flex; flex-direction: column; gap: 20px; z-index: 10; background: var(--bg-main); position: relative;}
         
         /* Верхний бар */
         .top-bar {
             display: flex; justify-content: space-between; align-items: center;
             background: var(--surface); padding: 16px 24px; border-radius: 14px;
-            border: 1px solid var(--border); flex-shrink: 0;
+            border: 1px solid var(--border); flex-shrink: 0; backdrop-filter: blur(10px);
         }
         .brand { display: flex; align-items: center; gap: 12px; }
-        .brand-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .brand-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #4f46e5, #3b82f6); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
         .room-details h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; display:flex; align-items:center; gap:8px;}
         .room-details span { color: var(--text-muted); font-size: 0.85rem; }
         
@@ -216,17 +278,18 @@
         /* Лента камер (Микшер) */
         .thumbnails-tray {
             height: 190px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-            padding: 12px; display: flex; gap: 12px; overflow-x: auto; flex-shrink: 0; outline: none;
+            padding: 12px; display: flex; gap: 12px; overflow-x: auto; flex-shrink: 0; outline: none; backdrop-filter: blur(10px);
         }
         .thumbnails-tray::-webkit-scrollbar { height: 6px; }
-        .thumbnails-tray::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .thumbnails-tray::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .thumbnails-tray::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
         
         .cam-card {
-            width: 240px; height: 100%; background: var(--bg-main); border-radius: 10px; overflow: hidden;
+            width: 240px; height: 100%; background: #050505; border-radius: 10px; overflow: hidden;
             border: 2px solid transparent; display: flex; flex-direction: column;
             cursor: pointer; transition: 0.2s ease; position: relative; flex-shrink: 0;
         }
-        .cam-card:hover { border-color: var(--border); }
+        .cam-card:hover { border-color: rgba(255,255,255,0.2); }
         .cam-card.active { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.2); }
         
         .hotkey-badge {
@@ -236,11 +299,11 @@
             backdrop-filter: blur(4px);
         }
 
-        .cam-feed { flex: 1; background: #050505; position: relative; overflow: hidden; }
+        .cam-feed { flex: 1; position: relative; overflow: hidden; }
         .cam-feed video { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; }
         
         .cam-info { 
-            padding: 6px 8px; background: var(--surface); border-top: 1px solid var(--border);
+            padding: 6px 8px; background: rgba(30,30,36,0.9); border-top: 1px solid rgba(255,255,255,0.05);
             display: flex; justify-content: space-between; align-items: center; gap: 4px;
         }
         .editable-cam-name {
@@ -248,30 +311,30 @@
             font-size: 0.85rem; font-weight: 500; padding: 4px 6px; width: 100%; border-radius: 4px;
             transition: 0.2s; font-family: inherit; flex: 1; min-width: 0;
         }
-        .editable-cam-name:hover { background: rgba(255,255,255,0.05); border-color: var(--border); }
-        .editable-cam-name:focus { background: var(--bg-main); border-color: var(--accent); outline: none; }
+        .editable-cam-name:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        .editable-cam-name:focus { background: rgba(0,0,0,0.5); border-color: #3b82f6; outline: none; }
 
         /* Правая часть: Записи */
         .sidebar {
             width: 320px; background: var(--surface); border-radius: 14px; padding: 20px;
-            border: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0;
+            border: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; backdrop-filter: blur(10px);
         }
-        .sidebar-header { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+        .sidebar-header { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .sidebar-header h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; }
         .sidebar-header p { font-size: 0.8rem; color: var(--text-muted); }
         
         .records-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .record-item {
-            background: var(--bg-main); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border);
+            background: rgba(0,0,0,0.2); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);
             display: flex; flex-direction: column; gap: 8px; transition: 0.2s;
         }
-        .record-item:hover { border-color: var(--accent); }
+        .record-item:hover { border-color: rgba(79, 70, 229, 0.4); background: rgba(0,0,0,0.4); }
         .record-meta { display: flex; justify-content: space-between; align-items: center; }
         .record-title { font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
         .record-time { font-size: 0.75rem; color: var(--text-muted); }
         .record-item a { 
-            background: rgba(79, 70, 229, 0.1); color: var(--accent); text-decoration: none; 
-            font-size: 0.85rem; font-weight: 500; padding: 6px 0; text-align: center; border-radius: 6px; 
+            background: rgba(79, 70, 229, 0.1); color: #818cf8; text-decoration: none; 
+            font-size: 0.85rem; font-weight: 500; padding: 8px 0; text-align: center; border-radius: 6px; transition: 0.2s;
         }
         .record-item a:hover { background: var(--accent); color: white; }
 
@@ -290,7 +353,6 @@
             if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
         }
 
-        // Закрытие выпадающего меню при клике вне его области
         window.onclick = function(event) {
             if (!event.target.closest('.dropdown')) {
                 document.querySelectorAll('.dropdown-content').forEach(el => el.classList.remove('show'));
@@ -302,42 +364,110 @@
 
     <div id="toast-container"></div>
 
-    <!-- ЛЕНДИНГ -->
-    <div id="landing-view">
-        <nav class="landing-nav">
-            <div class="landing-logo">
-                <div class="brand-icon" style="background: var(--accent); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                    <svg class="icon" viewBox="0 0 24 24" style="color: white; width: 16px; height: 16px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                </div>
-                Surveillance Pro
-            </div>
-        </nav>
+    <!-- ЛЕНДИНГ И 3D ФОН -->
+    <div id="landing-wrapper">
+        <canvas id="bg-canvas"></canvas>
         
-        <header class="landing-hero">
-            <h1>Профессиональная <span>Студия</span> в кармане</h1>
-            <p>Превратите ваши смартфоны в полноценные эфирные камеры с защищенным P2P подключением. Управляйте трансляцией с единого режиссерского пульта.</p>
-            <button class="btn-primary" style="font-size: 1.1rem; padding: 14px 32px; border-radius: 12px;" onclick="app.showAuth()">
-                Начать работу <svg class="icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </button>
-        </header>
+        <div id="landing-view">
+            <div class="landing-container">
+                <nav class="landing-nav">
+                    <div class="landing-logo">
+                        <!-- МЕСТО ДЛЯ ТВОЕГО ЛОГОТИПА -->
+                        <!-- Замени YOUR_LOGO_PATH_HERE.png на реальный путь к файлу логотипа -->
+                        <img src="YOUR_LOGO_PATH_HERE.png" alt="" id="custom-logo" style="height: 36px; object-fit: contain; display: block;" onerror="this.style.display='none'"> 
+                        <span id="text-logo">Surveillance Pro</span>
+                    </div>
+                    <button class="btn-secondary" style="background: rgba(255,255,255,0.05); border: none;" onclick="app.showAuth('viewer')">Войти</button>
+                </nav>
+                
+                <header class="hero-section">
+                    <div class="hero-badge">P2P Broadcast Technology</div>
+                    <h1>Профессиональная <span>Студия</span><br>в вашем кармане</h1>
+                    <p>Превратите смартфоны в полноценные эфирные камеры с защищенным сквозным шифрованием. Управляйте трансляцией и сводите видео в браузере без задержек.</p>
+                    <button class="btn-primary" style="font-size: 1.1rem; padding: 16px 36px; border-radius: 12px;" onclick="app.showAuth('viewer')">
+                        Создать сеанс <svg class="icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </header>
 
-        <section class="landing-features">
-            <div class="feature-card">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <h3>E2E Шифрование</h3>
-                <p>Видеопоток передается напрямую с телефона на компьютер. Серверы не имеют доступа к вашему видео.</p>
+                <div class="section-title">
+                    <h2>Возможности платформы</h2>
+                    <p>Всё необходимое для организации мультикамерных трансляций</p>
+                </div>
+
+                <section class="features-grid">
+                    <div class="feature-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <h3>Сквозное шифрование (E2E)</h3>
+                        <p>WebRTC протокол соединяет камеры с пультом напрямую. Видеопоток не сохраняется на промежуточных серверах, обеспечивая 100% приватность.</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                        <h3>Студийный микшер</h3>
+                        <p>Интерфейс профессионального видеомикшера прямо в браузере. Переключайтесь между ракурсами мгновенно с помощью горячих клавиш (1-9).</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+                        <h3>Локальная мастер-запись</h3>
+                        <p>Записывайте сведенный "Прямой эфир" напрямую в память вашего ПК. Скачивание готового .webm файла сразу после остановки.</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                        <h3>Внешние микрофоны</h3>
+                        <p>Полная поддержка петличек и профессиональных микрофонов (Type-C / Lightning). Переключение аудиоисточников в один клик.</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        <h3>Глобальный доступ</h3>
+                        <p>Камеры могут находиться в любой точке мира. Достаточно мобильного интернета для передачи качественного сигнала в студию.</p>
+                    </div>
+                    <div class="feature-card">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                        <h3>Не требует установки</h3>
+                        <p>Забудьте про тяжелые приложения. Система работает в Safari, Chrome, Edge и Firefox без скачивания плагинов и драйверов.</p>
+                    </div>
+                </section>
+
+                <section class="how-it-works">
+                    <div class="section-title">
+                        <h2>Как это работает?</h2>
+                        <p>Начните трансляцию всего за три простых шага</p>
+                    </div>
+                    <div class="steps-container">
+                        <div class="step-box">
+                            <div class="step-num">1</div>
+                            <h3>Создайте Комнату</h3>
+                            <p>Зайдите в Панель Управления с компьютера, придумайте ID сеанса и защитные пароли.</p>
+                        </div>
+                        <div class="step-box">
+                            <div class="step-num">2</div>
+                            <h3>Подключите Камеры</h3>
+                            <p>Откройте этот же сайт на телефонах операторов, выберите вкладку "Камера" и введите данные.</p>
+                        </div>
+                        <div class="step-box">
+                            <div class="step-num">3</div>
+                            <h3>Вы в Эфире</h3>
+                            <p>Видео появится на вашем пульте. Переключайте ракурсы и нажимайте запись.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="cta-section">
+                    <h2>Готовы к первой трансляции?</h2>
+                    <p style="color:var(--text-muted); font-size: 1.1rem; margin-bottom: 30px;">Система полностью настроена и ждет ваших команд.</p>
+                    <button class="btn-primary" style="font-size: 1.2rem; padding: 18px 40px; border-radius: 14px;" onclick="app.showAuth('viewer')">
+                        Открыть Пульт Режиссера
+                    </button>
+                    <br><br>
+                    <button class="btn-secondary" style="background:transparent; border:none; color: #818cf8; font-weight: 600;" onclick="app.showAuth('camera')">
+                        Подключиться как камера →
+                    </button>
+                </section>
+
+                <footer class="footer">
+                    <p>&copy; 2026 Surveillance Pro. Все видеоданные передаются по защищенному P2P соединению.</p>
+                </footer>
             </div>
-            <div class="feature-card">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                <h3>Микшер в браузере</h3>
-                <p>Подключайте несколько камер одновременно и переключайтесь между ними горячими клавишами (1-9).</p>
-            </div>
-            <div class="feature-card">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
-                <h3>Локальная запись</h3>
-                <p>Записывайте сведенный мастер-эфир прямо на вашем ПК без сторонних программ захвата.</p>
-            </div>
-        </section>
+        </div>
     </div>
 
     <!-- ЭКРАН ВХОДА -->
@@ -362,7 +492,7 @@
                     <input type="password" id="v-pass" placeholder="Пароль для пульта" value="admin123">
                 </div>
                 <div class="input-group">
-                    <label>Пароль для Камер <span style="color:var(--text-muted); font-size:0.75rem;">(Если создаете новую)</span></label>
+                    <label>Пароль для Камер <span style="color:var(--text-muted); font-size:0.75rem; text-transform:none;">(При создании)</span></label>
                     <input type="text" id="v-cam-pass" placeholder="Придумайте пароль для источников" value="cam123">
                 </div>
                 <button class="btn-primary auth-action-btn" onclick="app.loginViewer()">
@@ -385,11 +515,13 @@
                     <label>Название Камеры</label>
                     <input type="text" id="c-name" placeholder="Например: Холл, Зал..." value="Камера 1">
                 </div>
-                <button class="btn-primary auth-action-btn" style="background: var(--surface-light); border: 1px solid var(--border);" onclick="app.loginCamera()">
+                <button class="btn-primary auth-action-btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); box-shadow:none;" onclick="app.loginCamera()">
                     <svg class="icon" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
                     Подключить Камеру
                 </button>
             </div>
+            
+            <button class="btn-secondary" style="width:100%; margin-top: 15px; background: transparent; border: none;" onclick="app.hideAuth()">← Назад на главную</button>
         </div>
     </div>
 
@@ -479,6 +611,94 @@
         </div>
     </div>
 
+    <!-- Инициализация Three.js Background -->
+    <script>
+        function init3DBackground() {
+            const canvas = document.getElementById('bg-canvas');
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x0a0a0c, 0.001);
+
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 200;
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 200;
+            const posArray = new Float32Array(particlesCount * 3);
+
+            for(let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 600;
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 2,
+                color: 0x4f46e5,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particlesMesh = new THREE.Points(particlesGeometry, material);
+            scene.add(particlesMesh);
+
+            // Линии между близкими точками (сеть)
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0x3b82f6,
+                transparent: true,
+                opacity: 0.15
+            });
+
+            let mouseX = 0;
+            let mouseY = 0;
+
+            document.addEventListener('mousemove', (event) => {
+                mouseX = event.clientX / window.innerWidth - 0.5;
+                mouseY = event.clientY / window.innerHeight - 0.5;
+                
+                // Передача координат мыши для эффекта свечения на карточках
+                document.querySelectorAll('.feature-card').forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    const x = event.clientX - rect.left;
+                    const y = event.clientY - rect.top;
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            const clock = new THREE.Clock();
+
+            function animate() {
+                requestAnimationFrame(animate);
+                const elapsedTime = clock.getElapsedTime();
+
+                particlesMesh.rotation.y = elapsedTime * 0.05;
+                particlesMesh.rotation.x = elapsedTime * 0.02;
+
+                camera.position.x += (mouseX * 50 - camera.position.x) * 0.05;
+                camera.position.y += (-mouseY * 50 - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+        }
+
+        document.addEventListener('DOMContentLoaded', init3DBackground);
+    </script>
+
+    <!-- Основная логика приложения -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -520,9 +740,15 @@
                 }, 4000);
             },
 
-            showAuth() {
-                document.getElementById('landing-view').classList.add('hidden');
+            showAuth(defaultTab = 'viewer') {
+                document.getElementById('landing-wrapper').classList.add('hidden');
                 document.getElementById('auth-view').classList.remove('hidden');
+                this.switchTab(defaultTab);
+            },
+            
+            hideAuth() {
+                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('landing-wrapper').classList.remove('hidden');
             },
 
             switchTab(tab) {
@@ -554,13 +780,11 @@
                         const roomData = roomSnap.data();
                         if (roomData.viewerPassword !== vPass) return this.showToast("Неверный пароль режиссера!", "error");
                         
-                        // Защита от перехвата: если в комнате есть режиссер, и он подавал сигнал недавно (менее 15 сек назад)
                         const now = Date.now();
                         if (roomData.viewerId && roomData.viewerId !== this.userId && roomData.viewerPing && (now - roomData.viewerPing < 15000)) {
                             return this.showToast("В сеансе уже работает другой режиссер. Подождите 15 секунд после его выхода.", "error");
                         }
 
-                        // Если прошло 15 секунд или это тот же пользователь - пускаем
                         await updateDoc(roomRef, { viewerId: this.userId, viewerPing: Date.now() });
                     } else {
                         if (!cPass) return this.showToast("При создании новой комнаты задайте пароль для камер!", "error");
@@ -596,7 +820,7 @@
                     const roomRef = doc(db, "rooms", this.roomId);
                     const roomSnap = await getDoc(roomRef);
 
-                    if (!roomSnap.exists()) return this.showToast("Комната не найдена. Сначала создайте ее в Пульте ТВ.", "error");
+                    if (!roomSnap.exists()) return this.showToast("Комната не найдена. Сначала создайте ее в Пульте.", "error");
                     if (roomSnap.data().cameraPassword !== cPass) return this.showToast("Неверный пароль камеры!", "error");
 
                     const userCred = await signInAnonymously(auth);
@@ -848,7 +1072,6 @@
                         app.showToast("Звуковой микшер не поддерживается браузером.", "error");
                     }
                     
-                    // Запуск Heartbeat пульта
                     this.pingInterval = setInterval(() => {
                         updateDoc(doc(db, "rooms", app.roomId), { viewerPing: Date.now() }).catch(()=>{});
                     }, 5000);
@@ -952,7 +1175,6 @@
                                 <button class="btn-icon-small" title="Повернуть на 90 градусов" onclick="app.viewerMode.rotateCameraUI('${camData.id}'); event.stopPropagation();">
                                     <svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                                 </button>
-                                <!-- Три точки для удаления -->
                                 <div class="dropdown">
                                     <button class="btn-icon-small" onclick="document.getElementById('drop-${camData.id}').classList.toggle('show'); event.stopPropagation();">
                                         <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg>
@@ -1236,7 +1458,6 @@
 
         window.addEventListener('beforeunload', () => {
             if (app.role === 'viewer' && app.roomId) {
-                // Если мы закрываем пульт - очищаем пинг, чтобы пустить другого (или себя)
                 const roomRef = doc(db, "rooms", app.roomId);
                 updateDoc(roomRef, { viewerPing: null }).catch(()=>{});
             }
