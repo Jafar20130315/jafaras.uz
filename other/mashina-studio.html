@@ -118,7 +118,7 @@
         }
         .mobile-name-input:focus { width: 220px; border-color: var(--accent); }
 
-        .mobile-controls { pointer-events: auto; display: flex; gap: 10px; justify-content: center; }
+        .mobile-controls { pointer-events: auto; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
         #sleep-overlay { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; align-items: center; justify-content: center; color: #222; }
 
         /* ПАНЕЛЬ УПРАВЛЕНИЯ (Студия) */
@@ -227,15 +227,15 @@
         .icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     </style>
     
-    <!-- Базовая защита от разработчиков (отключение DevTools) -->
+    <!-- Защита от перехвата потока и DevTools -->
     <script>
-        document.addEventListener('contextmenu', event => event.preventDefault()); // Блок правого клика
+        document.addEventListener('contextmenu', event => event.preventDefault()); 
         document.onkeydown = function(e) {
-            if(e.keyCode == 123) { return false; } // Блок F12
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } // Блок Ctrl+Shift+I
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } // Блок Ctrl+Shift+C
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } // Блок Ctrl+Shift+J
-            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } // Блок Ctrl+U
+            if(e.keyCode == 123) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } 
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
         }
     </script>
 </head>
@@ -305,7 +305,6 @@
                     <div class="status-badge" id="cam-status">
                         <div class="status-dot"></div> Ожидание сигнала
                     </div>
-                    <!-- Поле для переименования прямо на камере -->
                     <input type="text" id="mobile-cam-name" class="mobile-name-input" 
                            onblur="app.cameraMode.renameCamera(this.value)" 
                            onkeydown="if(event.key==='Enter') this.blur()">
@@ -314,10 +313,18 @@
                     <div class="status-dot dot-live"></div> ЭФИР
                 </div>
             </div>
+            
             <div class="mobile-controls">
+                <!-- Смена Объектива -->
                 <button class="btn-secondary" style="background: rgba(30,30,36,0.9); backdrop-filter: blur(10px);" onclick="app.cameraMode.flipCamera()">
-                    <svg class="icon"><path d="M21.5 2v6h-6M2.13 15.57a9 9 0 1 0 3.87-10.42L2 2"/><line x1="2.5" y1="2" x2="8.5" y2="8"/></svg> Сменить камеру
+                    <svg class="icon"><path d="M21.5 2v6h-6M2.13 15.57a9 9 0 1 0 3.87-10.42L2 2"/><line x1="2.5" y1="2" x2="8.5" y2="8"/></svg> Камера
                 </button>
+                
+                <!-- Смена Микрофона (Type-C / Lightning / Встроенный) -->
+                <button class="btn-secondary" style="background: rgba(30,30,36,0.9); backdrop-filter: blur(10px);" onclick="app.cameraMode.switchMicrophone()">
+                    <svg class="icon"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg> Микрофон
+                </button>
+
                 <button class="btn-secondary" style="background: rgba(30,30,36,0.9); backdrop-filter: blur(10px);" onclick="app.cameraMode.toggleSleep()">
                     <svg class="icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Затемнить
                 </button>
@@ -336,7 +343,7 @@
                     <svg class="icon" style="color: white; width: 16px; height: 16px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                 </div>
                 <div class="room-details">
-                    <h2>Рабочее пространство <span class="security-badge" title="WebRTC протокол использует сквозное шифрование (DTLS/SRTP)">🔒 E2E Шифрование</span></h2>
+                    <h2>Рабочее пространство <span class="security-badge" title="WebRTC протокол использует сквозное E2E шифрование. Видео недоступно для перехвата.">🔒 E2E Шифрование</span></h2>
                     <span id="desktop-room-name">Сеанс: - | Управление: Цифры 1-9 или клик</span>
                 </div>
             </div>
@@ -396,6 +403,7 @@
         const app = {
             roomId: null,
             userId: null,
+            role: null,
             
             showToast(message, type = 'info') {
                 const container = document.getElementById('toast-container');
@@ -433,6 +441,7 @@
                 try {
                     const userCred = await signInAnonymously(auth);
                     this.userId = userCred.user.uid;
+                    this.role = 'viewer';
 
                     const roomRef = doc(db, "rooms", this.roomId);
                     const roomSnap = await getDoc(roomRef);
@@ -440,9 +449,10 @@
                     if (roomSnap.exists()) {
                         const roomData = roomSnap.data();
                         if (roomData.viewerPassword !== vPass) return this.showToast("Неверный пароль режиссера!", "error");
-                        if (roomData.viewerId && roomData.viewerId !== this.userId) {
-                            return this.showToast("В сеансе уже работает другой режиссер.", "error");
-                        }
+                        
+                        // ПЕРЕХВАТ ПУЛЬТА: Если пароль верный, просто перезаписываем viewerId на свой,
+                        // выкидывая зависшую или закрытую сессию из базы (защита от "вечной блокировки").
+                        await updateDoc(roomRef, { viewerId: this.userId });
                     } else {
                         if (!cPass) return this.showToast("При создании новой комнаты задайте пароль для камер!", "error");
                         await setDoc(roomRef, { 
@@ -452,10 +462,6 @@
                             globalCommand: null, 
                             viewerId: this.userId 
                         });
-                    }
-
-                    if (roomSnap.exists() && !roomSnap.data().viewerId) {
-                        await updateDoc(roomRef, { viewerId: this.userId });
                     }
 
                     document.getElementById('auth-view').classList.add('hidden');
@@ -485,6 +491,7 @@
 
                     const userCred = await signInAnonymously(auth);
                     this.userId = userCred.user.uid;
+                    this.role = 'camera';
 
                     document.getElementById('auth-view').classList.add('hidden');
                     this.showToast(`Подключение к ${this.roomId}...`, "success");
@@ -502,11 +509,13 @@
             cameraMode: {
                 stream: null, peerConnection: null, wakeLock: null,
                 camRef: null, currentFacingMode: 'environment',
+                currentAudioDeviceId: null, // Сохранение текущего микрофона
 
                 async init(initialName) {
                     try {
                         this.stream = await navigator.mediaDevices.getUserMedia({ 
-                            video: { facingMode: this.currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true 
+                            video: { facingMode: this.currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } }, 
+                            audio: { echoCancellation: true, noiseSuppression: true } 
                         });
                         document.getElementById('local-video').srcObject = this.stream;
                         document.getElementById('mobile-cam-name').value = initialName;
@@ -528,29 +537,77 @@
                     this.currentFacingMode = this.currentFacingMode === 'environment' ? 'user' : 'environment';
                     
                     if (this.stream) {
-                        this.stream.getTracks().forEach(track => track.stop());
+                        const oldVideo = this.stream.getVideoTracks()[0];
+                        if(oldVideo) oldVideo.stop();
                     }
                     
                     try {
-                        this.stream = await navigator.mediaDevices.getUserMedia({
-                            video: { facingMode: this.currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-                            audio: true
+                        const newStream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: this.currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } }
                         });
+                        
+                        const newVideoTrack = newStream.getVideoTracks()[0];
+                        
+                        // Заменяем видео локально, оставляя аудио как есть
+                        this.stream.removeTrack(this.stream.getVideoTracks()[0]);
+                        this.stream.addTrack(newVideoTrack);
                         document.getElementById('local-video').srcObject = this.stream;
 
-                        // Обновляем потоки (track) прямо в активном WebRTC соединении без разрыва сессии
+                        // Обновляем WebRTC
                         if (this.peerConnection) {
-                            const videoTrack = this.stream.getVideoTracks()[0];
                             const sender = this.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-                            if (sender) sender.replaceTrack(videoTrack);
-
-                            const audioTrack = this.stream.getAudioTracks()[0];
-                            const audioSender = this.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
-                            if (audioSender) audioSender.replaceTrack(audioTrack);
+                            if (sender) sender.replaceTrack(newVideoTrack);
                         }
-                        app.showToast("Камера переключена", "info");
+                        app.showToast("Объектив переключен", "info");
                     } catch (e) {
                         app.showToast("Не удалось переключить камеру", "error");
+                    }
+                },
+
+                // Переключение микрофона (Встроенный / Type-C / Lightning)
+                async switchMicrophone() {
+                    try {
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        const audioInputs = devices.filter(d => d.kind === 'audioinput');
+
+                        if (audioInputs.length <= 1) {
+                            app.showToast("Внешние микрофоны не найдены. Используется встроенный.", "info");
+                            return;
+                        }
+
+                        // Ищем следующий по списку
+                        let currentIndex = audioInputs.findIndex(d => d.deviceId === this.currentAudioDeviceId);
+                        if (currentIndex === -1) currentIndex = 0;
+                        const nextIndex = (currentIndex + 1) % audioInputs.length;
+                        this.currentAudioDeviceId = audioInputs[nextIndex].deviceId;
+                        const newMicName = audioInputs[nextIndex].label || `Микрофон ${nextIndex + 1}`;
+
+                        // Запрашиваем конкретный аудио-поток
+                        const newAudioStream = await navigator.mediaDevices.getUserMedia({
+                            audio: { 
+                                deviceId: { exact: this.currentAudioDeviceId },
+                                echoCancellation: true, 
+                                noiseSuppression: true 
+                            }
+                        });
+
+                        const newAudioTrack = newAudioStream.getAudioTracks()[0];
+                        const oldAudioTrack = this.stream.getAudioTracks()[0];
+                        
+                        if (oldAudioTrack) {
+                            this.stream.removeTrack(oldAudioTrack);
+                            oldAudioTrack.stop();
+                        }
+                        this.stream.addTrack(newAudioTrack);
+
+                        if (this.peerConnection) {
+                            const audioSender = this.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
+                            if (audioSender) audioSender.replaceTrack(newAudioTrack);
+                        }
+
+                        app.showToast(`Подключен: ${newMicName}`, "success");
+                    } catch (e) {
+                        app.showToast("Ошибка при переключении микрофона", "error");
                     }
                 },
 
@@ -570,14 +627,12 @@
                         if (snap.exists()) {
                             const data = snap.data();
                             
-                            // Обновление имени
                             const dbName = data.name;
                             const input = document.getElementById('mobile-cam-name');
                             if (dbName && document.activeElement !== input) {
                                 input.value = dbName;
                             }
 
-                            // Выполнение удаленной команды с ПК (смена камеры)
                             if (data.command === 'flip') {
                                 this.flipCamera();
                                 updateDoc(this.camRef, { command: null }).catch(()=>{});
@@ -585,7 +640,6 @@
                         }
                     });
 
-                    // Слушаем глобальные команды записи
                     onSnapshot(doc(db, "rooms", app.roomId), (snap) => {
                         if (!snap.exists()) {
                             app.showToast("Сеанс закрыт режиссером.", "info");
@@ -664,7 +718,7 @@
                 activeConnections: {}, 
                 cameraIds: [], 
                 camNames: {}, 
-                rotations: {}, // Углы поворота видео (0, 90, 180, 270)
+                rotations: {}, 
                 activeCamId: null, 
                 
                 audioCtx: null, audioDest: null, audioSources: {},
@@ -767,13 +821,11 @@
                     grid.appendChild(card);
                 },
 
-                // Отправка команды переворота (Фронт/Тыл) на телефон
                 remoteFlip(camId) {
                     updateDoc(doc(db, `rooms/${app.roomId}/cameras`, camId), { command: 'flip' }).catch(()=>{});
                     app.showToast("Команда смены объектива отправлена", "info");
                 },
 
-                // Вращение видео локально на пульте (90 градусов)
                 rotateCameraUI(camId) {
                     this.rotations[camId] = ((this.rotations[camId] || 0) + 90) % 360;
                     const videoEl = document.getElementById(`video-${camId}`);
@@ -879,7 +931,6 @@
                     });
                 },
 
-                // Отрисовка с учетом поворота
                 startStudioRenderLoop() {
                     const canvas = document.getElementById('program-canvas');
                     if (!canvas) return;
@@ -899,7 +950,6 @@
                                 let canvasW = canvas.width;
                                 let canvasH = canvas.height;
 
-                                // Если повернуто на 90 или 270, меняем местами ширину и высоту для правильного Aspect Ratio
                                 if (rot === 90 || rot === 270) {
                                     canvasW = canvas.height;
                                     canvasH = canvas.width;
@@ -913,11 +963,8 @@
                                 const finalH = drawH * ratio;
 
                                 ctx.save();
-                                // Переносим центр координат в середину холста
                                 ctx.translate(canvas.width / 2, canvas.height / 2);
                                 ctx.rotate(rot * Math.PI / 180);
-                                
-                                // Рисуем видео отцентрировано
                                 ctx.drawImage(video, -finalW / 2, -finalH / 2, finalW, finalH);
                                 ctx.restore();
                             }
@@ -1021,6 +1068,18 @@
                 }
             }
         };
+
+        // Логика автоматической очистки БД при закрытии вкладки
+        window.addEventListener('beforeunload', () => {
+            if (app.role === 'viewer' && app.roomId) {
+                const roomRef = doc(db, "rooms", app.roomId);
+                deleteDoc(roomRef).catch(()=>{});
+            }
+            if (app.role === 'camera' && app.roomId && app.userId) {
+                const camRef = doc(db, `rooms/${app.roomId}/cameras`, app.userId);
+                deleteDoc(camRef).catch(()=>{});
+            }
+        });
 
         window.app = app;
     </script>
