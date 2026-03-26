@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Surveillance Pro - Broadcast Studio</title>
+    
     <!-- Подключаем Three.js для 3D фона -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Подключаем библиотеки для QR кодов -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -202,7 +208,22 @@
         
         .input-group { margin-bottom: 18px; }
         .input-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-        .auth-action-btn { width: 100%; padding: 14px; margin-top: 10px; font-size: 1rem; border-radius: 12px; }
+        .auth-action-btn { width: 100%; padding: 14px; font-size: 1rem; border-radius: 12px; }
+
+        /* QR Модалка & Сканер */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .modal-content {
+            background: rgba(30,30,36,0.95); padding: 30px; border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1); text-align: center; max-width: 340px; width: 100%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+        #qrcode-container { background: white; padding: 15px; border-radius: 12px; display: inline-block; margin: 20px 0; }
+        
+        #qr-reader { width: 100%; border-radius: 12px; overflow: hidden; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1) !important;}
+        #qr-reader video { object-fit: cover; }
 
         /* Мобильный вид (Камера) */
         #mobile-view { height: 100vh; position: relative; background: #000; z-index: 10;}
@@ -515,13 +536,31 @@
                     <label>Название Камеры</label>
                     <input type="text" id="c-name" placeholder="Например: Холл, Зал..." value="Камера 1">
                 </div>
-                <button class="btn-primary auth-action-btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); box-shadow:none;" onclick="app.loginCamera()">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-                    Подключить Камеру
-                </button>
+                
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn-primary auth-action-btn" style="flex: 1; margin-top:0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); box-shadow:none;" onclick="app.loginCamera()">
+                        Подключить
+                    </button>
+                    <button class="btn-secondary" style="margin-top:0; padding: 0 16px; border-radius: 12px; border-color: rgba(255,255,255,0.2);" onclick="app.startQRScanner()" title="Сканировать QR-код с пульта">
+                        <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    </button>
+                </div>
+                
+                <!-- Контейнер для сканера QR -->
+                <div id="qr-reader" class="hidden"></div>
             </div>
             
             <button class="btn-secondary" style="width:100%; margin-top: 15px; background: transparent; border: none;" onclick="app.hideAuth()">← Назад на главную</button>
+        </div>
+    </div>
+
+    <!-- Модалка с QR кодом для пульта -->
+    <div id="qr-modal" class="modal-overlay hidden" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="modal-content">
+            <h3 style="font-size: 1.2rem; margin-bottom: 8px;">Сканируйте для входа</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Наведите камеру смартфона прямо в этом приложении, чтобы автоматически ввести данные сеанса.</p>
+            <div id="qrcode-container"></div>
+            <button class="btn-secondary" style="width: 100%;" onclick="document.getElementById('qr-modal').classList.add('hidden')">Закрыть</button>
         </div>
     </div>
 
@@ -579,6 +618,9 @@
                 </div>
             </div>
             <div class="action-group">
+                <button class="btn-secondary" onclick="app.viewerMode.showQRCode()">
+                    <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> QR-код
+                </button>
                 <button class="btn-primary" id="btn-record-mix" onclick="app.viewerMode.toggleMasterRecord()">
                     <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg> Записать Эфир
                 </button>
@@ -628,19 +670,16 @@
             const group = new THREE.Group();
             scene.add(group);
 
-            // 1. Темное ядро (скрывает линии позади себя, придавая объем)
             const coreGeo = new THREE.IcosahedronGeometry(180, 2);
             const coreMat = new THREE.MeshBasicMaterial({ color: 0x050508 });
             const core = new THREE.Mesh(coreGeo, coreMat);
             group.add(core);
 
-            // 2. Светящаяся техно-сетка (экватор сигнала)
             const wireframe = new THREE.WireframeGeometry(coreGeo);
             const lineMaterial = new THREE.LineBasicMaterial({ color: 0x4f46e5, transparent: true, opacity: 0.3 });
             const sphereWire = new THREE.LineSegments(wireframe, lineMaterial);
             group.add(sphereWire);
 
-            // 3. Орбитальная пыль (дата-частицы)
             const particlesGeometry = new THREE.BufferGeometry();
             const particlesCount = 1500;
             const posArray = new Float32Array(particlesCount * 3);
@@ -665,7 +704,6 @@
             const particlesMesh = new THREE.Points(particlesGeometry, particleMaterial);
             group.add(particlesMesh);
 
-            // 4. Пульсирующее кольцо радара
             const ringGeo = new THREE.RingGeometry(280, 282, 64);
             const ringMat = new THREE.MeshBasicMaterial({ color: 0x4f46e5, side: THREE.DoubleSide, transparent: true, opacity: 0.2 });
             const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -681,7 +719,6 @@
                 mouseX = (event.clientX - window.innerWidth / 2);
                 mouseY = (event.clientY - window.innerHeight / 2);
                 
-                // Передача координат мыши для эффекта свечения на карточках
                 document.querySelectorAll('.feature-card').forEach(card => {
                     const rect = card.getBoundingClientRect();
                     const x = event.clientX - rect.left;
@@ -703,22 +740,18 @@
                 requestAnimationFrame(animate);
                 const elapsedTime = clock.getElapsedTime();
 
-                // Плавное следование камеры за мышью
                 targetX = mouseX * 0.1;
                 targetY = mouseY * 0.1;
                 camera.position.x += (targetX - camera.position.x) * 0.02;
                 camera.position.y += (-targetY - camera.position.y) * 0.02;
                 camera.lookAt(scene.position);
 
-                // Вращение объектов
                 group.rotation.y = elapsedTime * 0.05;
-                group.rotation.z = Math.sin(elapsedTime * 0.2) * 0.05; // Легкое покачивание
+                group.rotation.z = Math.sin(elapsedTime * 0.2) * 0.05; 
                 
-                // Контр-вращение частиц для создания объема
                 particlesMesh.rotation.y = elapsedTime * -0.02;
                 particlesMesh.rotation.x = elapsedTime * 0.03;
 
-                // Пульсация кольца радара
                 const scale = 1 + Math.sin(elapsedTime * 3) * 0.03;
                 ring.scale.set(scale, scale, scale);
 
@@ -756,6 +789,8 @@
             roomId: null,
             userId: null,
             role: null,
+            cameraPassword: null, 
+            html5QrCode: null,
             
             showToast(message, type = 'info') {
                 const container = document.getElementById('toast-container');
@@ -794,6 +829,50 @@
                 document.getElementById(`tab-btn-${tab}`).classList.add('active');
             },
 
+            // Логика сканера QR кода на телефоне
+            async startQRScanner() {
+                const reader = document.getElementById('qr-reader');
+                if (!reader.classList.contains('hidden')) {
+                    if (this.html5QrCode) {
+                        try { await this.html5QrCode.stop(); } catch(e){}
+                    }
+                    reader.classList.add('hidden');
+                    return;
+                }
+
+                reader.classList.remove('hidden');
+                if(!this.html5QrCode) {
+                    this.html5QrCode = new Html5Qrcode("qr-reader");
+                }
+                
+                try {
+                    await this.html5QrCode.start(
+                        { facingMode: "environment" },
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        (decodedText) => {
+                            try {
+                                const data = JSON.parse(decodedText);
+                                if(data.r && data.p) {
+                                    document.getElementById('c-room-id').value = data.r;
+                                    document.getElementById('c-pass').value = data.p;
+                                    
+                                    this.html5QrCode.stop().then(() => {
+                                        reader.classList.add('hidden');
+                                        this.showToast("QR код считан! Подключаемся...", "success");
+                                        // Опционально: автоматический старт
+                                        // setTimeout(() => this.loginCamera(), 500); 
+                                    });
+                                }
+                            } catch(e) {}
+                        },
+                        (errorMessage) => {}
+                    );
+                } catch(err) {
+                    this.showToast("Нет доступа к камере для сканирования", "error");
+                    reader.classList.add('hidden');
+                }
+            },
+
             async loginViewer() {
                 this.roomId = document.getElementById('v-room-id').value.trim();
                 const vPass = document.getElementById('v-pass').value.trim();
@@ -818,9 +897,12 @@
                             return this.showToast("В сеансе уже работает другой режиссер. Подождите 15 секунд после его выхода.", "error");
                         }
 
+                        this.cameraPassword = roomData.cameraPassword;
                         await updateDoc(roomRef, { viewerId: this.userId, viewerPing: Date.now() });
                     } else {
                         if (!cPass) return this.showToast("При создании новой комнаты задайте пароль для камер!", "error");
+                        
+                        this.cameraPassword = cPass;
                         await setDoc(roomRef, { 
                             viewerPassword: vPass, 
                             cameraPassword: cPass, 
@@ -938,40 +1020,50 @@
                         const devices = await navigator.mediaDevices.enumerateDevices();
                         const audioInputs = devices.filter(d => d.kind === 'audioinput');
 
+                        let newAudioTrack;
+                        let newMicName = "Системный микрофон";
+
+                        // Если система видит только 1 микрофон (Android часто сливает Type-C и встроенный в один "Default"),
+                        // мы делаем жесткий перезапуск аудио потока, чтобы ОС подхватила подключенную Type-C петличку
                         if (audioInputs.length <= 1) {
-                            app.showToast("Внешние микрофоны не найдены. Используется встроенный.", "info");
-                            return;
+                            app.showToast("Поиск Type-C микрофона...", "info");
+                            const newAudioStream = await navigator.mediaDevices.getUserMedia({
+                                audio: { echoCancellation: true, noiseSuppression: true }
+                            });
+                            newAudioTrack = newAudioStream.getAudioTracks()[0];
+                        } else {
+                            // Если устройств несколько, переключаемся между ними по кругу
+                            let currentIndex = audioInputs.findIndex(d => d.deviceId === this.currentAudioDeviceId);
+                            if (currentIndex === -1) currentIndex = 0;
+                            const nextIndex = (currentIndex + 1) % audioInputs.length;
+                            this.currentAudioDeviceId = audioInputs[nextIndex].deviceId;
+                            newMicName = audioInputs[nextIndex].label || `Микрофон ${nextIndex + 1}`;
+
+                            const newAudioStream = await navigator.mediaDevices.getUserMedia({
+                                audio: { 
+                                    deviceId: { exact: this.currentAudioDeviceId },
+                                    echoCancellation: true, 
+                                    noiseSuppression: true 
+                                }
+                            });
+                            newAudioTrack = newAudioStream.getAudioTracks()[0];
                         }
 
-                        let currentIndex = audioInputs.findIndex(d => d.deviceId === this.currentAudioDeviceId);
-                        if (currentIndex === -1) currentIndex = 0;
-                        const nextIndex = (currentIndex + 1) % audioInputs.length;
-                        this.currentAudioDeviceId = audioInputs[nextIndex].deviceId;
-                        const newMicName = audioInputs[nextIndex].label || `Микрофон ${nextIndex + 1}`;
-
-                        const newAudioStream = await navigator.mediaDevices.getUserMedia({
-                            audio: { 
-                                deviceId: { exact: this.currentAudioDeviceId },
-                                echoCancellation: true, 
-                                noiseSuppression: true 
-                            }
-                        });
-
-                        const newAudioTrack = newAudioStream.getAudioTracks()[0];
+                        // Удаляем старый звук и ставим новый
                         const oldAudioTrack = this.stream.getAudioTracks()[0];
-                        
                         if (oldAudioTrack) {
                             this.stream.removeTrack(oldAudioTrack);
                             oldAudioTrack.stop();
                         }
                         this.stream.addTrack(newAudioTrack);
 
+                        // Отправляем новый звук режиссеру в пульт
                         if (this.peerConnection) {
                             const audioSender = this.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
                             if (audioSender) audioSender.replaceTrack(newAudioTrack);
                         }
 
-                        app.showToast(`Подключен: ${newMicName}`, "success");
+                        app.showToast(`Аудио обновлено: ${newMicName}`, "success");
                     } catch (e) {
                         app.showToast("Ошибка при переключении микрофона", "error");
                     }
@@ -1113,6 +1205,26 @@
                     this.startHeartbeatMonitor(); 
                     this.setupKeyboardSwitching();
                     this.startStudioRenderLoop();
+                },
+                
+                showQRCode() {
+                    const modal = document.getElementById('qr-modal');
+                    const qrContainer = document.getElementById('qrcode-container');
+                    qrContainer.innerHTML = ''; 
+                    
+                    // Упаковываем данные для входа (Room ID + Пароль)
+                    const payload = JSON.stringify({ r: app.roomId, p: app.cameraPassword });
+                    
+                    new QRCode(qrContainer, {
+                        text: payload,
+                        width: 180,
+                        height: 180,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.M
+                    });
+                    
+                    modal.classList.remove('hidden');
                 },
 
                 listenForCameras() {
