@@ -932,15 +932,17 @@
                 if (!this.roomId || !cPass) return this.showToast("Введите ID комнаты и пароль камеры", "error");
 
                 try {
+                    // АВТОРИЗАЦИЯ ДОЛЖНА БЫТЬ ДО ЗАПРОСА В БАЗУ (из-за правил безопасности)
+                    const userCred = await signInAnonymously(auth);
+                    this.userId = userCred.user.uid;
+                    this.role = 'camera';
+
+                    // ТЕПЕРЬ ЧИТАЕМ БАЗУ
                     const roomRef = doc(db, "rooms", this.roomId);
                     const roomSnap = await getDoc(roomRef);
 
                     if (!roomSnap.exists()) return this.showToast("Комната не найдена. Сначала создайте ее в Пульте.", "error");
                     if (roomSnap.data().cameraPassword !== cPass) return this.showToast("Неверный пароль камеры!", "error");
-
-                    const userCred = await signInAnonymously(auth);
-                    this.userId = userCred.user.uid;
-                    this.role = 'camera';
 
                     document.getElementById('auth-view').classList.add('hidden');
                     this.showToast(`Подключение к ${this.roomId}...`, "success");
@@ -948,6 +950,7 @@
                     document.getElementById('mobile-view').classList.remove('hidden');
                     this.cameraMode.init(cName);
                 } catch (error) {
+                    console.error("Login Camera Error:", error);
                     this.showToast("Ошибка соединения.", "error");
                 }
             },
@@ -1017,14 +1020,22 @@
 
                 async switchMicrophone() {
                     try {
+                        // Останавливаем старый микрофон ДО запроса нового, чтобы ОС Android отпустила аудио-канал и подхватила Type-C
+                        const oldAudioTrack = this.stream.getAudioTracks()[0];
+                        if (oldAudioTrack) {
+                            oldAudioTrack.stop();
+                            this.stream.removeTrack(oldAudioTrack);
+                        }
+
+                        // Даем ОС 200мс на перестроение аппаратных маршрутов звука
+                        await new Promise(res => setTimeout(res, 200));
+
                         const devices = await navigator.mediaDevices.enumerateDevices();
                         const audioInputs = devices.filter(d => d.kind === 'audioinput');
 
                         let newAudioTrack;
                         let newMicName = "Системный микрофон";
 
-                        // Если система видит только 1 микрофон (Android часто сливает Type-C и встроенный в один "Default"),
-                        // мы делаем жесткий перезапуск аудио потока, чтобы ОС подхватила подключенную Type-C петличку
                         if (audioInputs.length <= 1) {
                             app.showToast("Поиск Type-C микрофона...", "info");
                             const newAudioStream = await navigator.mediaDevices.getUserMedia({
@@ -1032,7 +1043,6 @@
                             });
                             newAudioTrack = newAudioStream.getAudioTracks()[0];
                         } else {
-                            // Если устройств несколько, переключаемся между ними по кругу
                             let currentIndex = audioInputs.findIndex(d => d.deviceId === this.currentAudioDeviceId);
                             if (currentIndex === -1) currentIndex = 0;
                             const nextIndex = (currentIndex + 1) % audioInputs.length;
@@ -1049,15 +1059,8 @@
                             newAudioTrack = newAudioStream.getAudioTracks()[0];
                         }
 
-                        // Удаляем старый звук и ставим новый
-                        const oldAudioTrack = this.stream.getAudioTracks()[0];
-                        if (oldAudioTrack) {
-                            this.stream.removeTrack(oldAudioTrack);
-                            oldAudioTrack.stop();
-                        }
                         this.stream.addTrack(newAudioTrack);
 
-                        // Отправляем новый звук режиссеру в пульт
                         if (this.peerConnection) {
                             const audioSender = this.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
                             if (audioSender) audioSender.replaceTrack(newAudioTrack);
@@ -1065,6 +1068,7 @@
 
                         app.showToast(`Аудио обновлено: ${newMicName}`, "success");
                     } catch (e) {
+                        console.error(e);
                         app.showToast("Ошибка при переключении микрофона", "error");
                     }
                 },
