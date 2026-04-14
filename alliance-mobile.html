@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alliance Mobile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Сброс скруглений и стандартов iOS для строгих форм */
+        input, button, textarea {
+            border-radius: 0 !important;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        /* Фикс для плавного скролла */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="bg-white text-black font-sans pb-[60px] md:pb-0 antialiased selection:bg-black selection:text-white">
+
+    
+    <header class="flex justify-between items-center p-5 md:p-8 border-b border-gray-200">
+        <div class="font-medium text-lg md:text-xl">Alliance Mobile</div>
+        <div class="font-medium text-lg md:text-xl">Do'kon №777</div>
+    </header>
+
+    
+    <section class="flex flex-col md:flex-row w-full min-h-[85vh] border-b border-gray-200">
+        
+        <div id="three-container" class="w-full h-[40vh] md:h-auto md:w-1/2 flex-shrink-0 bg-gray-50 border-b md:border-b-0 md:border-l border-gray-200 order-1 md:order-2 overflow-hidden pointer-events-none md:pointer-events-auto">
+            
+        </div>
+        
+        
+        <div class="w-full md:w-1/2 flex flex-col justify-center p-6 md:p-12 lg:p-16 order-2 md:order-1">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-medium leading-tight mb-6 tracking-tight">
+                Asl texnika.<br>
+                Navoiy, Gulobod, A-33.
+            </h1>
+            <p class="text-gray-500 text-xl md:text-2xl mt-2 max-w-lg font-medium leading-relaxed">
+                Kafolatli smartfonlar va aksessuarlar.
+            </p>
+        </div>
+    </section>
+
+    
+    <section class="p-6 md:p-12 lg:p-16 border-b border-gray-200">
+        <h2 class="text-3xl md:text-4xl font-medium mb-10 tracking-tight">Katalog</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+            
+            <div class="border border-gray-200 p-8 flex flex-col justify-between bg-white hover:border-black transition-colors duration-300">
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-medium">iPhone 16 Pro</h3>
+                    <p class="text-gray-500 text-xl mt-3 font-medium">15 200 000 UZS</p>
+                </div>
+                <button class="w-full min-h-[60px] bg-black text-white font-medium text-xl mt-10 hover:bg-gray-800 transition-colors">
+                    Sotib olish
+                </button>
+            </div>
+            
+            
+            <div class="border border-gray-200 p-8 flex flex-col justify-between bg-white hover:border-black transition-colors duration-300">
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-medium">iPhone 15 Pro</h3>
+                    <p class="text-gray-500 text-xl mt-3 font-medium">12 800 000 UZS</p>
+                </div>
+                <button class="w-full min-h-[60px] bg-black text-white font-medium text-xl mt-10 hover:bg-gray-800 transition-colors">
+                    Sotib olish
+                </button>
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="p-6 md:p-12 lg:p-16 border-b border-gray-200">
+        <h2 class="text-3xl md:text-4xl font-medium mb-10 tracking-tight">Trade-in</h2>
+        
+        
+        <form class="w-full flex flex-col gap-8" onsubmit="event.preventDefault();">
+            <input type="text" placeholder="Ismingiz" class="w-full border-0 border-b border-gray-300 focus:ring-0 focus:border-black py-4 text-xl md:text-2xl bg-transparent outline-none transition-colors placeholder-gray-400">
+            
+            <input type="tel" placeholder="Telefon raqamingiz" class="w-full border-0 border-b border-gray-300 focus:ring-0 focus:border-black py-4 text-xl md:text-2xl bg-transparent outline-none transition-colors placeholder-gray-400">
+            
+            <input type="text" placeholder="Xabaringiz" class="w-full border-0 border-b border-gray-300 focus:ring-0 focus:border-black py-4 text-xl md:text-2xl bg-transparent outline-none transition-colors placeholder-gray-400">
+            
+            <button type="submit" class="w-full min-h-[60px] bg-black text-white font-medium text-xl mt-6 hover:bg-gray-800 transition-colors md:w-1/3 md:self-start">
+                Yuborish
+            </button>
+        </form>
+    </section>
+
+    
+    <footer class="hidden md:flex justify-between items-center p-12 bg-white">
+        <div class="font-medium text-gray-400 text-lg">© 2026 Alliance Mobile</div>
+        <a href="tel:+998913309797" class="font-medium text-2xl hover:text-gray-500 transition-colors tracking-tight">
+            +998 91 330 97 97
+        </a>
+    </footer>
+
+    
+    <div class="md:hidden fixed bottom-0 left-0 w-full z-50">
+        <a href="tel:+998913309797" class="flex items-center justify-center w-full min-h-[60px] bg-black text-white font-medium text-xl border-t border-gray-800">
+            +998 91 330 97 97
+        </a>
+    </div>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        window.onload = function() {
+            const container = document.getElementById('three-container');
+            
+            // Инициализация сцены
+            const scene = new THREE.Scene();
+            
+            // Настройка камеры
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.position.z = 8;
+            
+            // Настройка рендерера (прозрачный фон)
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Оптимизация производительности
+            container.appendChild(renderer.domElement);
+            
+            // Освещение (строгое студийное)
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+            scene.add(ambientLight);
+            
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
+            directionalLight1.position.set(5, 5, 5);
+            scene.add(directionalLight1);
+            
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight2.position.set(-5, -5, -5);
+            scene.add(directionalLight2);
+            
+            // Геометрия 3D-панели (напоминает форму смартфона)
+            const geometry = new THREE.BoxGeometry(2.6, 5.2, 0.2);
+            
+            // Материал (металл / матовое стекло)
+            const material = new THREE.MeshPhysicalMaterial({
+                color: 0xcccccc,
+                metalness: 0.8,
+                roughness: 0.2,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.1
+            });
+            
+            const panel = new THREE.Mesh(geometry, material);
+            scene.add(panel);
+            
+            // Цикл анимации
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Плавное вращение панели
+                panel.rotation.y += 0.006;
+                panel.rotation.x += 0.002;
+                
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // Идеальная обработка поворота устройства и ресайза окна
+            window.addEventListener('resize', () => {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                
+                renderer.setSize(width, height);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+            });
+        };
+    </script>
+</body>
+</html>
