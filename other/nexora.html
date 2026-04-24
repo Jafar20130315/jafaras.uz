@@ -1,0 +1,621 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexora - The Future of Work</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          animation: {
+            'spin-slow': 'spin 3s linear infinite',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-[#f5f7fb] text-[#111827] font-sans relative overflow-x-hidden selection:bg-blue-200">
+
+  <!-- Background Ambient Blobs -->
+  <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-400/20 blur-[120px] pointer-events-none"></div>
+  <div class="fixed bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-indigo-400/10 blur-[150px] pointer-events-none"></div>
+  <div class="fixed top-[20%] right-[10%] w-[400px] h-[400px] rounded-full bg-purple-400/10 blur-[100px] pointer-events-none"></div>
+
+  <!-- --- Navbar --- -->
+  <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-6xl z-50">
+    <div class="bg-white/60 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgba(0,0,0,0.06)] rounded-[24px] px-6 py-3 flex items-center justify-between">
+      
+      <!-- Logo -->
+      <div class="flex items-center gap-2 cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4f7cff] to-[#7aa6ff] flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="layers" class="w-[18px] h-[18px] fill-current"></i>
+        </div>
+        <span class="font-bold text-xl tracking-tight">Nexora</span>
+      </div>
+
+      <!-- Links (Desktop) -->
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+        <a href="#features" class="hover:text-gray-900 transition-colors">Features</a>
+        <a href="#solutions" class="hover:text-gray-900 transition-colors">Solutions</a>
+        <a href="#resources" class="hover:text-gray-900 transition-colors">Resources</a>
+        <a href="#pricing" class="hover:text-gray-900 transition-colors">Pricing</a>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-3 text-sm font-medium">
+        <button class="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors">Sign in</button>
+        <button class="px-5 py-2.5 bg-gradient-to-r from-[#4f7cff] to-[#6ea8ff] text-white rounded-xl shadow-[0_4px_14px_rgba(79,124,255,0.4)] hover:shadow-[0_6px_20px_rgba(79,124,255,0.6)] hover:-translate-y-0.5 transition-all duration-200">
+          Get started
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- --- Main Content --- -->
+  <main class="pt-40 pb-20 px-6 max-w-7xl mx-auto relative z-10">
+    
+    <!-- Hero Section -->
+    <div class="flex flex-col items-center text-center max-w-4xl mx-auto mb-24">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50/80 border border-blue-100 backdrop-blur-sm mb-8">
+        <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 text-xs font-semibold tracking-wide">New</span>
+        <span class="text-sm text-gray-600 font-medium">Introducing Nexora 2.0</span>
+        <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-400"></i>
+      </div>
+      
+      <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1]">
+        The future of <br />
+        work is <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#4f7cff] to-[#7aa6ff]">seamless.</span>
+      </h1>
+      
+      <p class="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl leading-relaxed">
+        Nexora brings all your tools, data, and teams together in one beautifully simple workspace. Collaborate, automate, and grow—faster.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row items-center gap-4 mb-10">
+        <button class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#4f7cff] to-[#6ea8ff] text-white rounded-[14px] font-semibold text-base shadow-[0_8px_25px_rgba(79,124,255,0.35)] hover:shadow-[0_12px_30px_rgba(79,124,255,0.5)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+          Get started for free
+          <i data-lucide="arrow-right" class="w-[18px] h-[18px]"></i>
+        </button>
+        <button class="w-full sm:w-auto px-8 py-4 bg-white/50 backdrop-blur-md border border-gray-200 text-gray-800 rounded-[14px] font-semibold text-base hover:bg-white/80 hover:shadow-sm transition-all flex items-center justify-center gap-2">
+          Watch demo
+          <i data-lucide="play" class="w-[18px] h-[18px] fill-current"></i>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex -space-x-3">
+          <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="User" class="w-9 h-9 rounded-full border-2 border-[#f5f7fb]" />
+          <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User" class="w-9 h-9 rounded-full border-2 border-[#f5f7fb]" />
+          <img src="https://i.pravatar.cc/150?u=a04258114e29026702d" alt="User" class="w-9 h-9 rounded-full border-2 border-[#f5f7fb]" />
+          <img src="https://i.pravatar.cc/150?u=a048581f4e29026701d" alt="User" class="w-9 h-9 rounded-full border-2 border-[#f5f7fb]" />
+        </div>
+        <span class="text-sm text-gray-500 font-medium">Join 10,000+ teams already using Nexora</span>
+      </div>
+    </div>
+
+    <!-- --- Dashboard Mockup (Glassmorphism Core) --- -->
+    <div class="relative mx-auto max-w-5xl rounded-[32px] p-2 bg-gradient-to-b from-white/60 to-white/20 backdrop-blur-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-white/50 overflow-x-auto">
+      <!-- Inner Card Container -->
+      <div class="min-w-[900px] bg-white/40 rounded-[28px] overflow-hidden flex flex-col md:flex-row shadow-inner border border-white/60 backdrop-blur-2xl">
+        
+        <!-- Sidebar -->
+        <div class="w-[240px] border-r border-gray-200/50 p-6 flex flex-col bg-white/30 backdrop-blur-md">
+          <div class="flex items-center gap-2 mb-10 pl-2">
+            <div class="w-6 h-6 rounded-lg bg-[#4f7cff] flex items-center justify-center text-white shadow-sm">
+              <i data-lucide="layers" class="w-3.5 h-3.5 fill-current"></i>
+            </div>
+            <span class="font-bold text-lg">Nexora</span>
+            <i data-lucide="layout-grid" class="w-4 h-4 ml-auto text-gray-400"></i>
+          </div>
+
+          <div class="space-y-1 flex-1">
+            <!-- Active Item -->
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors bg-[#f0f4ff] text-[#4f7cff] font-medium">
+              <div class="text-[#4f7cff]"><i data-lucide="layout-grid" class="w-[18px] h-[18px]"></i></div>
+              <span class="text-sm">Overview</span>
+            </div>
+            <!-- Inactive Items -->
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-gray-500 hover:bg-white/50 hover:text-gray-800">
+              <div class="text-gray-400"><i data-lucide="layers" class="w-[18px] h-[18px]"></i></div>
+              <span class="text-sm">Projects</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-gray-500 hover:bg-white/50 hover:text-gray-800">
+              <div class="text-gray-400"><i data-lucide="check-circle-2" class="w-[18px] h-[18px]"></i></div>
+              <span class="text-sm">Tasks</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-gray-500 hover:bg-white/50 hover:text-gray-800">
+              <div class="text-gray-400"><i data-lucide="calendar" class="w-[18px] h-[18px]"></i></div>
+              <span class="text-sm">Calendar</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-gray-500 hover:bg-white/50 hover:text-gray-800">
+              <div class="text-gray-400"><i data-lucide="message-square" class="w-[18px] h-[18px]"></i></div>
+              <span class="text-sm">Messages</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-gray-500 hover:bg-white/50 hover:text-gray-800">
+              <div class="text-gray-400"><i data-lucide="bar-chart-2" class="w-[18px] h-[18px]"></i></div>
+              <span class="text-sm">Reports</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-gray-500 hover:bg-white/50 hover:text-gray-800">
+              <div class="text-gray-400"><i data-lucide="settings" class="w-[18px] h-[18px]"></i></div>
+              <span class="text-sm">Settings</span>
+            </div>
+          </div>
+
+          <div class="mt-auto pt-6 border-t border-gray-200/50">
+            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/40 cursor-pointer transition-colors">
+              <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Profile" class="w-10 h-10 rounded-full" />
+              <div>
+                <div class="text-sm font-semibold text-gray-800">Olivia Rhye</div>
+                <div class="text-xs text-gray-500">olivia@work.com</div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 ml-auto text-gray-400"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Dashboard Area -->
+        <div class="flex-1 p-8">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-xl font-bold text-gray-800">Overview</h2>
+            <div class="flex items-center gap-2 bg-white/60 border border-gray-200/60 rounded-xl px-4 py-2 text-sm text-gray-600 shadow-sm backdrop-blur-sm cursor-pointer hover:bg-white/80 transition-colors">
+              <i data-lucide="calendar" class="w-4 h-4"></i>
+              <span>May 1 – May 31, 2024</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 rotate-90 ml-2"></i>
+            </div>
+          </div>
+
+          <!-- Stats Row -->
+          <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="bg-white/60 backdrop-blur-sm border border-white/80 rounded-[16px] p-4 shadow-sm flex flex-col justify-between h-24">
+              <div class="text-xs text-gray-500 font-medium">Projects</div>
+              <div class="flex items-end justify-between">
+                <div class="text-2xl font-bold text-gray-800">24</div>
+                <div class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+12%</div>
+              </div>
+            </div>
+            <div class="bg-white/60 backdrop-blur-sm border border-white/80 rounded-[16px] p-4 shadow-sm flex flex-col justify-between h-24">
+              <div class="text-xs text-gray-500 font-medium">Tasks</div>
+              <div class="flex items-end justify-between">
+                <div class="text-2xl font-bold text-gray-800">128</div>
+                <div class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+8%</div>
+              </div>
+            </div>
+            <div class="bg-white/60 backdrop-blur-sm border border-white/80 rounded-[16px] p-4 shadow-sm flex flex-col justify-between h-24">
+              <div class="text-xs text-gray-500 font-medium">Team members</div>
+              <div class="flex items-end justify-between">
+                <div class="text-2xl font-bold text-gray-800">16</div>
+                <div class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+4%</div>
+              </div>
+            </div>
+            <div class="bg-white/60 backdrop-blur-sm border border-white/80 rounded-[16px] p-4 shadow-sm flex flex-col justify-between h-24">
+              <div class="text-xs text-gray-500 font-medium">Completion rate</div>
+              <div class="flex items-end justify-between">
+                <div class="text-2xl font-bold text-gray-800">78%</div>
+                <div class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+15%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle Row (Chart & Activity) -->
+          <div class="grid grid-cols-3 gap-6 mb-6">
+            <!-- Line Chart Area -->
+            <div class="col-span-2 bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] relative overflow-hidden">
+              <h3 class="text-sm font-semibold text-gray-800 mb-6">Project progress</h3>
+              <div class="h-[200px] relative w-full">
+                <!-- Y-Axis Labels -->
+                <div class="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-[10px] text-gray-400 font-medium">
+                  <span>100%</span>
+                  <span>75%</span>
+                  <span>50%</span>
+                  <span>25%</span>
+                  <span>0%</span>
+                </div>
+                <!-- Grid Lines -->
+                <div class="absolute left-8 right-0 top-0 bottom-6 flex flex-col justify-between">
+                  <div class="w-full h-px bg-gray-200/50"></div>
+                  <div class="w-full h-px bg-gray-200/50"></div>
+                  <div class="w-full h-px bg-gray-200/50"></div>
+                  <div class="w-full h-px bg-gray-200/50"></div>
+                  <div class="w-full h-px bg-gray-200/50"></div>
+                </div>
+                <!-- SVG Line Chart -->
+                <div class="absolute left-8 right-0 top-0 bottom-6">
+                  <svg viewBox="0 0 400 180" class="w-full h-full overflow-visible" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#4f7cff" stop-opacity="0.15" />
+                        <stop offset="100%" stop-color="#4f7cff" stop-opacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <!-- Area Fill -->
+                    <path 
+                      d="M0,150 C40,150 80,110 120,105 C160,100 200,60 240,50 C280,40 320,60 360,30 C380,15 400,20 400,20 L400,180 L0,180 Z" 
+                      fill="url(#blueGradient)" 
+                    />
+                    <!-- Line -->
+                    <path 
+                      d="M0,150 C40,150 80,110 120,105 C160,100 200,60 240,50 C280,40 320,60 360,30 C380,15 400,20 400,20" 
+                      fill="none" 
+                      stroke="#4f7cff" 
+                      stroke-width="3" 
+                      class="drop-shadow-[0_4px_6px_rgba(79,124,255,0.3)]"
+                    />
+                    <!-- Data Points -->
+                    <circle cx="120" cy="105" r="4" fill="#fff" stroke="#4f7cff" stroke-width="2" />
+                    <circle cx="240" cy="50" r="4" fill="#fff" stroke="#4f7cff" stroke-width="2" />
+                    <circle cx="360" cy="30" r="4" fill="#fff" stroke="#4f7cff" stroke-width="2" />
+                    
+                    <!-- Tooltip Mock -->
+                    <g transform="translate(190, 10)">
+                       <rect width="100" height="40" rx="6" fill="white" class="drop-shadow-md" />
+                       <text x="50" y="16" font-size="9" font-weight="600" fill="#374151" text-anchor="middle">May 15, 2024</text>
+                       <circle cx="15" cy="28" r="3" fill="#4f7cff" />
+                       <text x="25" y="31" font-size="9" fill="#6b7280">Progress: <tspan font-weight="600" fill="#111827">65%</tspan></text>
+                    </g>
+                  </svg>
+                </div>
+                <!-- X-Axis Labels -->
+                <div class="absolute left-8 right-0 bottom-0 flex justify-between text-[10px] text-gray-400 font-medium px-2 pt-2">
+                  <span>May 1</span>
+                  <span>May 8</span>
+                  <span>May 15</span>
+                  <span>May 22</span>
+                  <span>May 31</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Team Activity Panel -->
+            <div class="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col">
+              <h3 class="text-sm font-semibold text-gray-800 mb-6">Team activity</h3>
+              <div class="space-y-5 flex-1">
+                <div class="flex items-start gap-3">
+                  <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Olivia Rhye" class="w-8 h-8 rounded-full" />
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm text-gray-800 font-medium truncate">Olivia Rhye</div>
+                    <div class="text-xs text-gray-500 truncate">
+                      Completed task <span class="font-semibold text-gray-700">Design system</span>
+                    </div>
+                  </div>
+                  <div class="text-[10px] text-gray-400 whitespace-nowrap">2m ago</div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Phoenix Baker" class="w-8 h-8 rounded-full" />
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm text-gray-800 font-medium truncate">Phoenix Baker</div>
+                    <div class="text-xs text-gray-500 truncate">
+                      Updated project <span class="font-semibold text-gray-700">Roadmap</span>
+                    </div>
+                  </div>
+                  <div class="text-[10px] text-gray-400 whitespace-nowrap">1h ago</div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <img src="https://i.pravatar.cc/150?u=a04258114e29026702d" alt="Lana Steiner" class="w-8 h-8 rounded-full" />
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm text-gray-800 font-medium truncate">Lana Steiner</div>
+                    <div class="text-xs text-gray-500 truncate">
+                      Commented on <span class="font-semibold text-gray-700">Wireframes</span>
+                    </div>
+                  </div>
+                  <div class="text-[10px] text-gray-400 whitespace-nowrap">3h ago</div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <img src="https://i.pravatar.cc/150?u=a048581f4e29026701d" alt="Demi Wilkinson" class="w-8 h-8 rounded-full" />
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm text-gray-800 font-medium truncate">Demi Wilkinson</div>
+                    <div class="text-xs text-gray-500 truncate">
+                      Uploaded file <span class="font-semibold text-gray-700">Presentation.pdf</span>
+                    </div>
+                  </div>
+                  <div class="text-[10px] text-gray-400 whitespace-nowrap">5h ago</div>
+                </div>
+              </div>
+              <button class="text-xs text-blue-500 font-medium text-left mt-4 hover:text-blue-600 transition-colors">
+                View all activity
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Row -->
+          <div class="grid grid-cols-3 gap-6">
+            <!-- Recent Projects -->
+            <div class="col-span-2 bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+               <h3 class="text-sm font-semibold text-gray-800 mb-6">Recent projects</h3>
+               <div class="space-y-4">
+                 <!-- Project Row 1 -->
+                 <div class="flex items-center justify-between group">
+                    <div class="flex items-center gap-3 min-w-[160px]">
+                      <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span class="text-sm font-medium text-gray-800">Website redesign</span>
+                      <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">In progress</span>
+                    </div>
+                    <div class="flex -space-x-2">
+                       <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="User" class="w-6 h-6 rounded-full border-2 border-white" />
+                       <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User" class="w-6 h-6 rounded-full border-2 border-white" />
+                       <div class="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-medium text-gray-600">+2</div>
+                    </div>
+                    <div class="flex items-center gap-3 w-32">
+                       <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                         <div class="h-full bg-blue-500 rounded-full" style="width: 65%;"></div>
+                       </div>
+                       <span class="text-xs text-gray-500 w-8 text-right">65%</span>
+                    </div>
+                 </div>
+                 <!-- Project Row 2 -->
+                 <div class="flex items-center justify-between mt-4">
+                    <div class="flex items-center gap-3 min-w-[160px]">
+                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span class="text-sm font-medium text-gray-800">Mobile app launch</span>
+                      <span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">Planning</span>
+                    </div>
+                    <div class="flex -space-x-2">
+                       <img src="https://i.pravatar.cc/150?u=a04258114e29026702d" alt="User" class="w-6 h-6 rounded-full border-2 border-white" />
+                       <img src="https://i.pravatar.cc/150?u=a048581f4e29026701d" alt="User" class="w-6 h-6 rounded-full border-2 border-white" />
+                       <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="User" class="w-6 h-6 rounded-full border-2 border-white" />
+                    </div>
+                    <div class="flex items-center gap-3 w-32">
+                       <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                         <div class="h-full bg-emerald-500 rounded-full" style="width: 30%;"></div>
+                       </div>
+                       <span class="text-xs text-gray-500 w-8 text-right">30%</span>
+                    </div>
+                 </div>
+               </div>
+            </div>
+
+            <!-- Tasks Donut -->
+            <div class="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+               <h3 class="text-sm font-semibold text-gray-800 mb-4">Tasks</h3>
+               <div class="flex items-center justify-between">
+                  <!-- SVG Donut -->
+                  <div class="relative w-24 h-24">
+                    <svg viewBox="0 0 36 36" class="w-full h-full transform -rotate-90">
+                       <!-- Base circle -->
+                       <path class="text-blue-100" stroke-width="4" stroke="currentColor" fill="none"
+                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                       <!-- To do (grayish) -->
+                       <path class="text-blue-300" stroke-width="4" stroke-dasharray="15, 100" stroke="currentColor" fill="none"
+                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                       <!-- In progress (blue) -->
+                       <path class="text-blue-500" stroke-width="4" stroke-dasharray="40, 100" stroke="currentColor" fill="none"
+                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                       <!-- Done (green) -->
+                       <path class="text-emerald-400" stroke-width="4" stroke-dasharray="60, 100" stroke="currentColor" fill="none"
+                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <!-- Inner white circle for donut effect -->
+                    <div class="absolute inset-2 bg-white rounded-full shadow-inner flex items-center justify-center"></div>
+                  </div>
+                  
+                  <!-- Legend -->
+                  <div class="space-y-2 text-xs font-medium">
+                     <div class="flex items-center gap-2">
+                       <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                       <span class="text-gray-600 w-20">Done</span>
+                       <span class="text-gray-800 font-semibold">60%</span>
+                     </div>
+                     <div class="flex items-center gap-2">
+                       <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                       <span class="text-gray-600 w-20">In progress</span>
+                       <span class="text-gray-800 font-semibold">25%</span>
+                     </div>
+                     <div class="flex items-center gap-2">
+                       <div class="w-2 h-2 rounded-full bg-blue-300"></div>
+                       <span class="text-gray-600 w-20">To do</span>
+                       <span class="text-gray-800 font-semibold">15%</span>
+                     </div>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- --- Features Grid --- -->
+    <div class="mt-32 grid grid-cols-1 md:grid-cols-4 gap-6 px-4">
+       <div class="bg-white/40 backdrop-blur-lg border border-white/60 rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+         <div class="w-10 h-10 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center mb-4">
+           <i data-lucide="zap" class="w-5 h-5 text-blue-500"></i>
+         </div>
+         <h3 class="text-base font-bold text-gray-800 mb-2">All-in-one workspace</h3>
+         <p class="text-sm text-gray-500 leading-relaxed">Everything you need in one beautifully designed platform.</p>
+       </div>
+       <div class="bg-white/40 backdrop-blur-lg border border-white/60 rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+         <div class="w-10 h-10 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center mb-4">
+           <i data-lucide="users" class="w-5 h-5 text-blue-500"></i>
+         </div>
+         <h3 class="text-base font-bold text-gray-800 mb-2">Team collaboration</h3>
+         <p class="text-sm text-gray-500 leading-relaxed">Work together in real-time from anywhere in the world.</p>
+       </div>
+       <div class="bg-white/40 backdrop-blur-lg border border-white/60 rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+         <div class="w-10 h-10 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center mb-4">
+           <i data-lucide="bar-chart-2" class="w-5 h-5 text-blue-500"></i>
+         </div>
+         <h3 class="text-base font-bold text-gray-800 mb-2">Smart analytics</h3>
+         <p class="text-sm text-gray-500 leading-relaxed">Make data-driven decisions with powerful insights.</p>
+       </div>
+       <div class="bg-white/40 backdrop-blur-lg border border-white/60 rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+         <div class="w-10 h-10 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center mb-4">
+           <i data-lucide="shield" class="w-5 h-5 text-blue-500"></i>
+         </div>
+         <h3 class="text-base font-bold text-gray-800 mb-2">Enterprise security</h3>
+         <p class="text-sm text-gray-500 leading-relaxed">Your data is protected with bank-level encryption.</p>
+       </div>
+    </div>
+
+    <!-- --- Secondary Section: Designed for clarity --- -->
+    <div class="mt-32 flex flex-col lg:flex-row gap-16 items-center">
+      
+      <!-- Left Content -->
+      <div class="flex-1">
+        <span class="text-[10px] font-bold tracking-wider text-blue-500 uppercase bg-blue-50 px-2.5 py-1 rounded-md mb-4 inline-block">Built for modern teams</span>
+        <h2 class="text-4xl md:text-5xl font-bold tracking-tight mb-6 leading-[1.1]">
+          Designed for clarity.<br />
+          Built for <span class="text-[#4f7cff]">productivity.</span>
+        </h2>
+        <p class="text-gray-500 text-lg mb-8 max-w-md">
+          Nexora combines powerful features with intuitive design to help your team do their best work.
+        </p>
+        <button class="px-6 py-3 bg-white border border-gray-200 text-gray-800 rounded-xl font-semibold shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex items-center gap-2">
+          Explore features
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Right Layout Grid (Glass widgets) -->
+      <div class="flex-1 relative w-full max-w-xl aspect-[4/3]">
+         <!-- Calendar Widget -->
+         <div class="absolute top-0 left-0 w-64 bg-white rounded-3xl p-5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-gray-100 z-10">
+            <div class="flex items-center justify-between mb-4">
+              <span class="font-semibold text-sm text-gray-800">Calendar</span>
+              <div class="flex gap-1 text-gray-400">
+                <i data-lucide="chevron-left" class="w-3.5 h-3.5 cursor-pointer hover:text-gray-600"></i>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 cursor-pointer hover:text-gray-600"></i>
+              </div>
+            </div>
+            <div class="text-xs font-medium text-gray-500 mb-2">May 2024</div>
+            <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-gray-400 font-medium mb-2">
+              <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-700">
+              <!-- Faded previous month days -->
+              <div class="text-gray-300">28</div><div class="text-gray-300">29</div><div class="text-gray-300">30</div>
+              <!-- Current month days -->
+              <div>1</div><div>2</div><div>3</div><div>4</div>
+              <div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div>10</div><div>11</div>
+              <div>12</div><div>13</div><div>14</div>
+              <!-- Active day -->
+              <div class="bg-[#4f7cff] text-white rounded-full w-6 h-6 flex items-center justify-center mx-auto shadow-sm shadow-blue-200">15</div>
+              <div>16</div><div>17</div><div>18</div>
+              <div>19</div><div>20</div><div>21</div><div>22</div><div>23</div><div>24</div><div>25</div>
+              <div>26</div><div>27</div><div>28</div><div>29</div><div>30</div><div>31</div>
+              <div class="text-gray-300">1</div>
+            </div>
+         </div>
+
+         <!-- Files Widget -->
+         <div class="absolute top-4 right-0 w-60 bg-white/80 backdrop-blur-xl rounded-3xl p-5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08)] border border-white">
+            <h4 class="text-sm font-semibold text-gray-800 mb-4">Files</h4>
+            <div class="space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
+                  <i data-lucide="file-text" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-gray-800">Project brief.pdf</div>
+                  <div class="text-[10px] text-gray-400">2.4 MB</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500">
+                  <i data-lucide="image" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-gray-800">Design system.sketch</div>
+                  <div class="text-[10px] text-gray-400">45.8 MB</div>
+                </div>
+              </div>
+            </div>
+         </div>
+
+         <!-- Team Members Widget -->
+         <div class="absolute bottom-0 right-4 w-72 bg-white/90 backdrop-blur-xl rounded-3xl p-5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.12)] border border-white/60">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-sm font-semibold text-gray-800">Team members</h4>
+              <button class="text-[10px] font-medium text-blue-500 hover:bg-blue-50 px-2 py-1 rounded flex items-center gap-1 transition-colors">
+                + Invite
+              </button>
+            </div>
+            <div class="space-y-3">
+               <div class="flex items-center justify-between">
+                 <div class="flex items-center gap-2">
+                   <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" class="w-8 h-8 rounded-full" alt="User" />
+                   <div>
+                     <div class="text-xs font-semibold text-gray-800">Olivia Rhye</div>
+                     <div class="text-[10px] text-gray-400">olivia@work.com</div>
+                   </div>
+                 </div>
+                 <span class="text-[10px] text-gray-500 font-medium">Owner</span>
+               </div>
+               <div class="flex items-center justify-between">
+                 <div class="flex items-center gap-2">
+                   <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" class="w-8 h-8 rounded-full" alt="User" />
+                   <div>
+                     <div class="text-xs font-semibold text-gray-800">Phoenix Baker</div>
+                     <div class="text-[10px] text-gray-400">phoenix@work.com</div>
+                   </div>
+                 </div>
+                 <span class="text-[10px] text-gray-500 font-medium">Editor</span>
+               </div>
+               <div class="flex items-center justify-between">
+                 <div class="flex items-center gap-2">
+                   <img src="https://i.pravatar.cc/150?u=a04258114e29026702d" class="w-8 h-8 rounded-full" alt="User" />
+                   <div>
+                     <div class="text-xs font-semibold text-gray-800">Lana Steiner</div>
+                     <div class="text-[10px] text-gray-400">lana@work.com</div>
+                   </div>
+                 </div>
+                 <span class="text-[10px] text-gray-500 font-medium">Viewer</span>
+               </div>
+            </div>
+         </div>
+      </div>
+    </div>
+
+    <!-- --- Logo Strip --- -->
+    <div class="mt-32 pt-10 border-t border-gray-200/50">
+      <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-center mb-8">Trusted by leading companies</p>
+      <div class="flex flex-wrap justify-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+        <!-- Mock Logos -->
+        <div class="flex items-center gap-2 text-xl font-bold font-serif text-gray-700">
+          <div class="w-6 h-6 border-4 border-gray-400 rounded-full border-t-transparent animate-spin-slow"></div>
+          Acme Corp
+        </div>
+        <div class="flex items-center gap-2 text-xl font-bold text-gray-700">
+          <i data-lucide="layers" class="text-gray-400"></i>
+          EchoPark
+        </div>
+        <div class="flex items-center gap-2 text-xl font-bold font-mono text-gray-700">
+          <div class="w-6 h-6 bg-gray-400 rounded-sm rotate-45"></div>
+          Quantum
+        </div>
+        <div class="flex items-center gap-2 text-xl font-bold text-gray-700">
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+           Cloudly
+        </div>
+        <div class="flex items-center gap-2 text-xl font-bold text-gray-700">
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M12 2L2 22h20L12 2z"/></svg>
+           Apex Systems
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
