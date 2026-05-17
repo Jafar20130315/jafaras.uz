@@ -94,19 +94,20 @@
     <script>
 
         const liveries = [
-            {
-                id: 1,
-                name: "Sukhoi Su-35 - Uzbekistan Air Force",
-                image: "https://i.ibb.co/t0KtjX6/image.png", // Rasm joylashgan joyni to'g'irla (masalan: assets/su35.jpg)
-                downloadLink: "https://raw.githubusercontent.com/Jafar20130315/ALTIS-gpws-sounds-for-geofs/refs/heads/main/liveries/Sukhoi-Su-35-Uzbekistan-Livery.png" // Yuklab olinadigan rasm manzili
-            } 
-             {
-                id: 2,
-                name: "Airbus A350 - Uzbekistan Airways (by ChinaParrot & Jafar_as)",
-                image: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/photo-at-the-airport.jpg", // Rasm joylashgan joyni to'g'irla (masalan: assets/su35.jpg)
-                downloadLink: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/uzbekistan-airways-a350-livery.png" // Yuklab olinadigan rasm manzili
-            } 
-            ];
+           [
+    {
+        id: 1,
+        name: "Sukhoi Su-35 - Uzbekistan Air Force",
+        image: "https://i.ibb.co/t0KtjX6/image.png",
+        downloadLink: "https://raw.githubusercontent.com/Jafar20130315/ALTIS-gpws-sounds-for-geofs/refs/heads/main/liveries/Sukhoi-Su-35-Uzbekistan-Livery.png"
+    }, // <-- Birinchi ob'ekt yopildi va vergul qo'yildi
+    {  // <-- Ikkinchi ob'ekt ochildi
+        id: 2,
+        name: "Airbus A350 - Uzbekistan Airways (by ChinaParrot & Jafar_as)",
+        image: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/photo-at-the-airport.jpg",
+        downloadLink: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/uzbekistan-airways-a350-livery.png"
+    } // <-- Ikkinchi ob'ekt yopildi
+];
         const container = document.getElementById('livery-container');
 
         liveries.forEach(livery => {
