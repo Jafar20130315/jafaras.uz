@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Download Media - Spatial UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            margin: 0; overflow: hidden; 
+            background-color: #050507; 
+            color: #e2e8f0; 
+            font-family: 'JetBrains Mono', monospace; 
+        }
+
+        #canvas-container { 
+            position: absolute; top: 0; left: 0; 
+            width: 100vw; height: 100vh; z-index: 1; 
+        }
+
+        .perspective-view {
+            position: absolute; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            perspective: 1200px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Изменено для позиционирования кнопок */
+            padding-left: 10vw;
+            padding-right: 10vw;
+            pointer-events: none;
+        }
+
+        .spatial-group {
+            transform: rotateX(15deg) rotateY(25deg) rotateZ(-2deg);
+            transform-style: preserve-3d;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: relative;
+        }
+
+        .input-captcha-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            transform-style: preserve-3d;
+            will-change: transform, opacity;
+        }
+
+        .spatial-block {
+            position: relative;
+            background: rgba(12, 12, 16, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: -20px 20px 30px rgba(0, 0, 0, 0.7), inset 1px 1px 2px rgba(255, 255, 255, 0.05);
+            transform-style: preserve-3d;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .spatial-block:hover { transform: translateZ(20px); }
+
+        .spatial-block::before {
+            content: ''; position: absolute; top: 5px; left: -10px; width: 10px; height: 100%;
+            background: #08080a; border-left: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);
+            transform-origin: right; transform: skewY(-45deg);
+        }
+
+        .spatial-block::after {
+            content: ''; position: absolute; bottom: -10px; left: -5px; width: 100%; height: 10px;
+            background: #050507; border-bottom: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05);
+            transform-origin: top; transform: skewX(-45deg);
+        }
+
+        input { 
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff;
+            outline: none; transition: all 0.3s ease; transform: translateZ(10px); 
+        }
+        input:focus { border-color: rgba(94, 234, 212, 0.5); box-shadow: 0 0 15px rgba(94, 234, 212, 0.1); }
+
+        .captcha-container {
+            transform: translateZ(15px); background: #000; border: 1px solid rgba(255,255,255,0.05); padding: 2px;
+        }
+
+        /* --- Новые стили для плавающих кнопок --- */
+        .action-buttons-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            pointer-events: auto;
+            position: absolute;
+            right: 10vw;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .spatial-btn {
+            position: relative;
+            background: rgba(12, 12, 16, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left-width: 4px;
+            padding: 1.5rem 3rem;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: -15px 15px 30px rgba(0, 0, 0, 0.5), inset 1px 1px 2px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: floatSlow 6s ease-in-out infinite;
+            outline: none;
+        }
+
+        .spatial-btn.delay-float {
+            animation-delay: -3s; /* Рассинхронизация парения второй кнопки */
+        }
+
+        .spatial-btn:hover {
+            background: rgba(20, 20, 25, 0.95);
+            transform: scale(1.05) translateZ(15px) !important;
+            box-shadow: -20px 20px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .spatial-btn:active {
+            transform: scale(0.95) !important;
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* Адаптив */
+        @media (max-width: 1023px) {
+            .perspective-view { padding-left: 0; padding-right: 0; justify-content: center; }
+            .spatial-group { transform: rotateX(10deg) rotateY(0deg) rotateZ(0deg) scale(0.95); align-items: center; }
+            
+            .action-buttons-group {
+                right: auto;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                opacity: 0;
+                pointer-events: none;
+                width: 320px;
+            }
+            .spatial-btn { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div class="perspective-view">
+        <div class="spatial-group">
+            
+            <!-- Заголовок -->
+            <div class="spatial-block w-[320px] md:w-[400px] text-center" style="padding: 1rem;">
+                <h1 class="text-xl md:text-2xl font-light tracking-[0.2em] text-white uppercase transform translate-z-[10px]">
+                    DOWNLOAD <span class="font-bold text-teal-400">MEDIA</span>
+                </h1>
+            </div>
+
+            <!-- Группа ввода и капчи -->
+            <div class="input-captcha-group" id="input-captcha-group">
+                <div class="spatial-block w-[320px] md:w-[400px]">
+                    <label class="block text-[10px] text-gray-400 tracking-[0.2em] mb-2 uppercase">Target URL</label>
+                    <input type="text" id="link-input" placeholder="https://" class="w-full px-4 py-3 text-sm rounded-sm">
+                </div>
+
+                <div class="spatial-block w-[320px] md:w-[400px] flex flex-col items-center">
+                    <label class="block text-[10px] text-gray-400 tracking-[0.2em] w-full text-left mb-2 uppercase">Security Protocol</label>
+                    <div class="captcha-container w-full flex justify-center">
+                        <div class="g-recaptcha" data-theme="dark" data-sitekey="YOUR_RECAPTCHA_SITE_KEY"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок вывода результатов -->
+            <div id="result-block" class="spatial-block w-[320px] md:w-[400px] absolute top-[100px] hidden opacity-0 z-50">
+                <div id="content" class="w-full text-sm"></div>
+            </div>
+        </div>
+
+        <!-- HTML Кнопки действий -->
+        <div id="action-buttons-group" class="action-buttons-group">
+            <button id="btn-video" class="spatial-btn border-l-teal-400">
+                <span class="text-teal-400 font-bold">EXTRACT</span> VIDEO
+            </button>
+            <button id="btn-music" class="spatial-btn border-l-indigo-400 delay-float">
+                <span class="text-indigo-400 font-bold">EXTRACT</span> AUDIO
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        const WORKER_URL = "https://твое-имя-воркера.твоя-зона.workers.dev";
+
+        // --- 1. Сцена и Камера (Фон) ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050507, 0.03);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0, 20);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const gridHelper = new THREE.GridHelper(50, 50, 0x111118, 0x0a0a0f);
+        gridHelper.rotation.x = Math.PI / 2 - 0.26; 
+        gridHelper.rotation.y = -0.43; 
+        gridHelper.position.z = -5;
+        scene.add(gridHelper);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        dirLight.position.set(10, 10, 10);
+        scene.add(dirLight);
+
+        // --- 2. Логика UI и Анимаций ---
+        const inputField = document.getElementById('link-input');
+        const inputCaptchaGroup = document.getElementById('input-captcha-group');
+        const actionButtonsGroup = document.getElementById('action-buttons-group');
+        let isMobileFlowActive = false;
+
+        function updateLayoutState() {
+            const isMobile = window.innerWidth < 1024;
+            const hasValidUrl = inputField.value.trim().length >= 28;
+
+            if (isMobile) {
+                if (hasValidUrl && !isMobileFlowActive) {
+                    // Прячем форму, показываем кнопки
+                    isMobileFlowActive = true;
+                    gsap.to(inputCaptchaGroup, { x: window.innerWidth, opacity: 0, duration: 0.8, ease: "power2.inOut", pointerEvents: 'none' });
+                    gsap.to(actionButtonsGroup, { opacity: 1, pointerEvents: 'auto', duration: 0.6, delay: 0.4 });
+                } else if (!hasValidUrl && isMobileFlowActive) {
+                    revertMobileFlow();
+                } else if (!hasValidUrl && !isMobileFlowActive) {
+                    gsap.set(inputCaptchaGroup, { x: 0, opacity: 1, pointerEvents: 'auto' });
+                    gsap.set(actionButtonsGroup, { opacity: 0, pointerEvents: 'none' });
+                }
+            } else {
+                // На десктопе кнопки всегда видны справа
+                isMobileFlowActive = false;
+                gsap.to(inputCaptchaGroup, { x: 0, opacity: 1, duration: 0.4, pointerEvents: 'auto' });
+                gsap.set(actionButtonsGroup, { opacity: 1, pointerEvents: 'auto' });
+            }
+        }
+
+        function revertMobileFlow() {
+            isMobileFlowActive = false;
+            gsap.to(actionButtonsGroup, { opacity: 0, pointerEvents: 'none', duration: 0.4 });
+            gsap.to(inputCaptchaGroup, { x: 0, opacity: 1, duration: 0.6, ease: "power2.out", pointerEvents: 'auto', delay: 0.2 });
+        }
+
+        inputField.addEventListener('input', updateLayoutState);
+
+        // Привязываем события к кнопкам
+        document.getElementById('btn-video').addEventListener('click', () => triggerBackendAction('video'));
+        document.getElementById('btn-music').addEventListener('click', () => triggerBackendAction('music'));
+
+        // --- 3. Рендер-цикл ---
+        function animate() {
+            requestAnimationFrame(animate);
+            // Медленное вращение сетки для эффекта "живого" фона
+            gridHelper.position.z = -5 + Math.sin(Date.now() * 0.0005) * 0.5;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            updateLayoutState();
+        });
+        
+        // Инициализация
+        updateLayoutState();
+
+        // --- 4. Интеграция с Cloudflare Worker ---
+        const resultBlock = document.getElementById('result-block');
+        const contentDiv = document.getElementById('content');
+
+        async function triggerBackendAction(actionType) {
+            const url = inputField.value.trim();
+            const captchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+
+            if (!captchaToken || !url) {
+                if (window.innerWidth < 1024 && isMobileFlowActive) {
+                    revertMobileFlow();
+                }
+                resultBlock.classList.remove('hidden');
+                gsap.to(resultBlock, { opacity: 1, duration: 0.3 });
+                renderError(!url ? 'Укажите URL' : 'Пройдите reCAPTCHA для безопасности.');
+                return;
+            }
+
+            // Прячем кнопки на мобильном во время загрузки
+            if (window.innerWidth < 1024 && isMobileFlowActive) {
+                gsap.to(actionButtonsGroup, { opacity: 0, pointerEvents: 'none', duration: 0.3 });
+            }
+
+            resultBlock.classList.remove('hidden');
+            gsap.to(resultBlock, { opacity: 1, duration: 0.3 });
+            contentDiv.innerHTML = `<span class="text-teal-400 animate-pulse text-xs tracking-widest uppercase">Инициализация соединения...</span>`;
+
+            try {
+                const response = await fetch(`${WORKER_URL}/api/${actionType}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url, token: captchaToken })
+                });
+
+                const data = await response.json();
+                if(typeof grecaptcha !== 'undefined') grecaptcha.reset();
+
+                if (!response.ok) throw new Error(data.error || 'Server error');
+
+                if (actionType === 'video') {
+                    contentDiv.innerHTML = `
+                        <div class="border-l-2 border-teal-400 pl-3">
+                            <p class="text-[10px] text-gray-500 tracking-widest uppercase mb-1">Status: Ready</p>
+                            <p class="text-white mb-4">Медиафайл успешно обработан.</p>
+                            <a href="${data.url}" target="_blank" class="inline-block bg-teal-400 text-black px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-teal-300 transition-colors">
+                                Download MP4
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    contentDiv.innerHTML = `
+                        <div class="border-l-2 border-indigo-400 pl-3">
+                            <p class="text-[10px] text-gray-500 tracking-widest uppercase mb-1">Track Identified</p>
+                            <p class="text-lg text-white font-bold">${data.title}</p>
+                            <p class="text-sm text-indigo-300 mb-4">${data.artist}</p>
+                            <a href="${data.musicUrl || '#'}" target="_blank" class="inline-block border border-indigo-400 text-indigo-400 px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-indigo-400 hover:text-black transition-colors">
+                                Listen Audio
+                            </a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                if(typeof grecaptcha !== 'undefined') grecaptcha.reset();
+                renderError(`SERVER ERROR: ${error.message}`);
+                if (window.innerWidth < 1024) revertMobileFlow();
+            }
+        }
+
+        function renderError(msg) {
+            contentDiv.innerHTML = `<span class="text-red-500 text-xs font-bold tracking-widest uppercase">${msg}</span>`;
+            gsap.fromTo(resultBlock, { x: -5 }, { x: 5, duration: 0.1, yoyo: true, repeat: 3 });
+        }
+    </script>
+</body>
+</html>
