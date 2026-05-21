@@ -34,8 +34,8 @@
     </script>
     <style>
         .dark #chat-messages::-webkit-scrollbar-thumb { background-color: #475569; }
-        #chat-messages::-webkit-scrollbar { width: 6px; }
-        #chat-messages::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        #chat-messages::-webkit-scrollbar, .custom-scroll::-webkit-scrollbar { width: 6px; }
+        #chat-messages::-webkit-scrollbar-thumb, .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         .transition-theme { transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
         
         .message-row {
@@ -63,67 +63,176 @@
         }
 
         @keyframes contextMenuPop {
-            from {
-                opacity: 0;
-                transform: scale(0.85) translateY(-5px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
+            from { opacity: 0; transform: scale(0.85) translateY(-5px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Page Slide Animation */
+        .page-layer {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
         }
     </style>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 h-full flex flex-col font-sans transition-theme no-select overflow-hidden">
 
     <!-- Custom Alert/Notice Popup -->
-    <div id="custom-alert" class="fixed top-4 left-1/2 -translate-x-1/2 z-[110] transform -translate-y-16 opacity-0 transition-all duration-300 ease-out bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-6 py-3 rounded-xl shadow-xl flex items-center gap-2 max-w-sm w-11/12 text-sm font-medium">
-        <span id="alert-text">Notification text goes here</span>
+    <div id="custom-alert" class="fixed top-4 left-1/2 -translate-x-1/2 z-[200] transform -translate-y-16 opacity-0 pointer-events-none transition-all duration-300 ease-out bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-6 py-3 rounded-xl shadow-xl flex items-center gap-2 max-w-sm w-11/12 text-sm font-medium">
+        <span id="alert-text">Notification</span>
     </div>
 
     <!-- Beautiful Custom Confirmation Modal -->
-    <div id="confirm-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+    <div id="confirm-modal" class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
         <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-2xl p-6 max-w-xs w-full shadow-2xl transform scale-90 transition-all duration-300">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Удалить сообщение?</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Вы уверены, что хотите навсегда удалить это сообщение? Это действие нельзя отменить.</p>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2" data-i18n="delete_title">Удалить сообщение?</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-6" data-i18n="delete_desc">Вы уверены, что хотите навсегда удалить это сообщение? Это действие нельзя отменить.</p>
             <div class="flex gap-3 justify-end">
-                <button id="confirm-cancel" class="px-4 py-2 text-sm font-semibold rounded-xl bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 transition-colors">Отмена</button>
-                <button id="confirm-delete" class="px-4 py-2 text-sm font-semibold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-lg active:scale-95 transition-all">Удалить</button>
+                <button id="confirm-cancel" class="px-4 py-2 text-sm font-semibold rounded-xl bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 transition-colors" data-i18n="cancel">Отмена</button>
+                <button id="confirm-delete" class="px-4 py-2 text-sm font-semibold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-lg active:scale-95 transition-all" data-i18n="delete_btn">Удалить</button>
             </div>
         </div>
     </div>
 
-    <!-- Settings Modal (Glassmorphism) -->
-    <div id="settings-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-white/20 dark:border-slate-700/50 rounded-2xl p-6 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300">
-            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-6">Настройки профиля</h3>
-            <div class="space-y-4">
+    <!-- Main Settings Page -->
+    <div id="settings-page" class="page-layer fixed inset-0 z-[110] bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-2xl translate-x-full flex flex-col">
+        <div class="h-16 border-b border-slate-200/50 dark:border-slate-800/50 px-4 flex items-center gap-3 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md">
+            <button class="back-btn p-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <span class="font-bold text-lg text-slate-800 dark:text-white" data-i18n="settings_title">Настройки профиля</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 max-w-2xl mx-auto w-full custom-scroll">
+            <div class="flex flex-col items-center mb-8">
+                <div class="relative w-28 h-28 mb-4 group cursor-pointer" id="profile-photo-container">
+                    <div id="settings-avatar-preview" class="w-full h-full bg-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-xl overflow-hidden bg-cover bg-center">C</div>
+                    <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
+                    <input type="file" id="settings-photo-input" accept="image/*" class="hidden">
+                </div>
+                <p class="text-xs text-slate-500" data-i18n="photo_limits">Max 1MB. Авто-сжатие.</p>
+            </div>
+
+            <div class="space-y-5 bg-white/50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Имя пользователя</label>
-                    <input type="text" id="settings-username" class="w-full px-4 py-3 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white transition-colors">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" data-i18n="username">Имя пользователя</label>
+                    <input type="text" id="settings-username" class="w-full px-4 py-3 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white transition-colors" readonly>
+                    <p class="text-[10px] text-slate-400 mt-1" data-i18n="username_readonly">Имя пользователя изменить нельзя.</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">О себе (описание)</label>
-                    <textarea id="settings-bio" rows="3" placeholder="Расскажите о себе..." class="w-full px-4 py-3 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white transition-colors resize-none"></textarea>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" data-i18n="bio">О себе (описание)</label>
+                    <textarea id="settings-bio" rows="3" class="w-full px-4 py-3 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white transition-colors resize-none"></textarea>
+                </div>
+                <button id="save-settings-btn" class="w-full py-3 mt-2 text-sm font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg active:scale-95 transition-all" data-i18n="save">Сохранить</button>
+            </div>
+
+            <div class="mt-6 space-y-2">
+                <button id="open-language-btn" class="w-full flex items-center justify-between p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors backdrop-blur-md">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
+                        </div>
+                        <span class="font-medium text-slate-800 dark:text-white" data-i18n="language">Язык</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-slate-500">
+                        <span id="current-lang-text" class="text-sm">По умолчанию</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Selection Page -->
+    <div id="language-page" class="page-layer fixed inset-0 z-[120] bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-2xl translate-x-full flex flex-col">
+        <div class="h-16 border-b border-slate-200/50 dark:border-slate-800/50 px-4 flex items-center gap-3 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md">
+            <button class="back-btn p-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <span class="font-bold text-lg text-slate-800 dark:text-white" data-i18n="language">Язык</span>
+        </div>
+        <div class="flex-1 p-4 max-w-2xl mx-auto w-full">
+            <div class="bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md overflow-hidden">
+                <button data-lang="system" class="lang-btn w-full flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors text-slate-800 dark:text-white">
+                    <span>По умолчанию (Системный)</span>
+                    <svg class="w-5 h-5 text-blue-500 hidden checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                </button>
+                <button data-lang="ru" class="lang-btn w-full flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors text-slate-800 dark:text-white">
+                    <span>Русский</span>
+                    <svg class="w-5 h-5 text-blue-500 hidden checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                </button>
+                <button data-lang="en" class="lang-btn w-full flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors text-slate-800 dark:text-white">
+                    <span>English</span>
+                    <svg class="w-5 h-5 text-blue-500 hidden checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                </button>
+                <button data-lang="uz" class="lang-btn w-full flex items-center justify-between p-4 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors text-slate-800 dark:text-white">
+                    <span>O'zbekcha</span>
+                    <svg class="w-5 h-5 text-blue-500 hidden checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Group Page -->
+    <div id="create-group-page" class="page-layer fixed inset-0 z-[110] bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-2xl translate-x-full flex flex-col">
+        <div class="h-16 border-b border-slate-200/50 dark:border-slate-800/50 px-4 flex items-center gap-3 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md">
+            <button class="back-btn p-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <span class="font-bold text-lg text-slate-800 dark:text-white" data-i18n="create_group">Создать группу</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 max-w-2xl mx-auto w-full custom-scroll">
+            <div class="flex flex-col items-center mb-6">
+                <div class="relative w-24 h-24 mb-4 group cursor-pointer" id="group-photo-container">
+                    <div id="group-photo-preview" class="w-full h-full bg-indigo-500 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg overflow-hidden bg-cover bg-center">G</div>
+                    <div class="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+                    </div>
+                    <input type="file" id="group-photo-input" accept="image/*" class="hidden">
                 </div>
             </div>
-            <div class="flex gap-3 justify-end mt-8">
-                <button id="close-settings-btn" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-slate-200/50 dark:bg-slate-800/50 hover:bg-slate-300/50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 transition-colors">Отмена</button>
-                <button id="save-settings-btn" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg active:scale-95 transition-all">Сохранить</button>
+
+            <div class="space-y-4 bg-white/50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" data-i18n="group_name">Название группы</label>
+                    <input type="text" id="group-name-input" class="w-full px-4 py-3 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" data-i18n="group_members">Пригласить (имена через запятую)</label>
+                    <textarea id="group-members-input" rows="2" placeholder="user1, user2..." class="w-full px-4 py-3 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white transition-colors resize-none"></textarea>
+                </div>
+                <button id="submit-group-btn" class="w-full py-3 mt-2 text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg active:scale-95 transition-all" data-i18n="create">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile View Page -->
+    <div id="user-profile-page" class="page-layer fixed inset-0 z-[110] bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-2xl translate-x-full flex flex-col">
+        <div class="h-16 border-b border-slate-200/50 dark:border-slate-800/50 px-4 flex items-center gap-3 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md">
+            <button class="back-btn p-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <span class="font-bold text-lg text-slate-800 dark:text-white" data-i18n="profile_title">Профиль пользователя</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 max-w-md mx-auto w-full flex flex-col items-center mt-10">
+            <div id="view-profile-avatar" class="w-32 h-32 bg-slate-300 dark:bg-slate-700 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-xl overflow-hidden bg-cover bg-center mb-6"></div>
+            <h2 id="view-profile-name" class="text-2xl font-bold text-slate-800 dark:text-white mb-2">@username</h2>
+            <div class="w-full bg-white/50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md mt-4">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2" data-i18n="bio">О себе</h3>
+                <p id="view-profile-bio" class="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap">Нет описания.</p>
             </div>
         </div>
     </div>
 
     <!-- Auth Overlay -->
-    <div id="auth-overlay" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-all duration-500">
-        <div id="auth-card" class="bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-md w-full shadow-2xl transition-all duration-500 transform scale-100">
-            <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Welcome to Chat</h2>
-            <p class="text-slate-500 dark:text-slate-400 mb-6">Enter a unique username to start chatting.</p>
+    <div id="auth-overlay" class="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-all duration-500">
+        <div id="auth-card" class="bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-md w-full shadow-2xl transition-all duration-500 transform scale-100 border border-slate-200 dark:border-slate-800">
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-2" data-i18n="welcome">Welcome to Chat</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-6" data-i18n="enter_username">Enter a unique username to start chatting.</p>
             
             <input type="text" id="username-input" placeholder="Username" 
                 class="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4 transition-theme">
             
-            <button id="join-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg active:scale-95">
+            <button id="join-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg active:scale-95" data-i18n="join">
                 Join Chat
             </button>
         </div>
@@ -132,22 +241,30 @@
     <!-- Hamburger Drawer Overlay -->
     <div id="hamburger-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[80] opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
-    <!-- Hamburger Drawer (Glassmorphism) -->
+    <!-- Hamburger Drawer -->
     <div id="hamburger-drawer" class="fixed inset-y-0 left-0 w-72 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-700/50 shadow-2xl transform -translate-x-full transition-transform duration-300 z-[90] flex flex-col">
         <div class="h-16 p-4 border-b border-slate-200/50 dark:border-slate-800/50 flex justify-between items-center">
-            <span class="font-bold text-slate-800 dark:text-white">Меню</span>
+            <span class="font-bold text-slate-800 dark:text-white" data-i18n="menu">Меню</span>
             <button id="close-hamburger" class="p-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-500">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
-        <div class="p-4 flex-1 overflow-y-auto space-y-4">
+        <div class="p-4 flex-1 overflow-y-auto space-y-4 custom-scroll">
+            <div class="flex items-center gap-3 mb-6 px-2 cursor-pointer" id="my-profile-btn">
+                <div id="menu-avatar" class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold bg-cover bg-center shadow-md">U</div>
+                <div>
+                    <div class="font-bold text-slate-800 dark:text-white truncate w-40" id="menu-username">@user</div>
+                    <div class="text-xs text-blue-500 font-medium" data-i18n="open_profile">Мой профиль</div>
+                </div>
+            </div>
+            
             <button id="open-settings-btn" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-200 font-medium transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                Настройки
+                <span data-i18n="settings_title">Настройки</span>
             </button>
             <hr class="border-slate-200/50 dark:border-slate-700/50">
             <div>
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider px-2">Тема</label>
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider px-2" data-i18n="theme">Тема</label>
                 <div class="flex flex-col gap-1 mt-2">
                     <button data-theme="light" class="theme-btn flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-800/50 text-sm text-slate-700 dark:text-slate-200 w-full text-left">
                         <span class="w-2 h-2 rounded-full bg-slate-300"></span> Light
@@ -161,7 +278,7 @@
                 </div>
             </div>
             <hr class="border-slate-200/50 dark:border-slate-700/50">
-            <button id="logout-btn" class="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl font-medium transition-colors">
+            <button id="logout-btn" class="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl font-medium transition-colors" data-i18n="logout">
                 Выйти из аккаунта
             </button>
         </div>
@@ -170,109 +287,112 @@
     <!-- Main UI Layout -->
     <div id="main-ui" class="opacity-0 translate-y-8 pointer-events-none flex h-full w-full bg-slate-50 dark:bg-slate-950 transition-all duration-500 ease-out overflow-hidden relative">
         
-        <!-- Left Sidebar (Chats List, Glassmorphism) -->
+        <!-- Left Sidebar (Chats List) -->
         <div id="left-sidebar" class="w-72 flex-shrink-0 flex-col border-r border-slate-200/70 dark:border-slate-800/70 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl transition-theme z-10 hidden md:flex">
-            <div class="h-16 border-b border-slate-200/70 dark:border-slate-800/70 flex items-center px-4 gap-3">
-                <button class="hamburger-btn p-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                </button>
-                <span class="font-bold text-slate-800 dark:text-white">Чаты</span>
-            </div>
-            <div class="flex-1 overflow-y-auto p-3 space-y-2">
-                <!-- Mock active chat -->
-                <div class="p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl cursor-pointer border border-blue-500/20 transition-colors">
-                    <div class="font-semibold text-slate-800 dark:text-white">Global Chat FFA</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Официальный канал</div>
+            <div class="h-16 border-b border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between px-4">
+                <div class="flex items-center gap-3">
+                    <button class="hamburger-btn p-2 -ml-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    </button>
+                    <span class="font-bold text-slate-800 dark:text-white" data-i18n="chats">Чаты</span>
                 </div>
-                <!-- Mock secondary chat -->
-                <div class="p-3 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-xl cursor-pointer transition-colors">
-                    <div class="font-medium text-slate-700 dark:text-slate-300">Announcements</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">News and updates</div>
+                <button id="open-create-group-btn" class="p-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors" title="Создать группу">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-3 space-y-2 custom-scroll" id="channels-list">
+                <!-- Global Chat Item -->
+                <div data-id="global_chat" data-type="public" class="channel-item p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl cursor-pointer border border-blue-500/20 transition-colors flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold shadow-sm">G</div>
+                    <div class="overflow-hidden">
+                        <div class="font-semibold text-slate-800 dark:text-white truncate">Global Chat FFA</div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate" data-i18n="global_desc">Официальный канал</div>
+                    </div>
+                </div>
+                
+                <div class="pt-4 pb-1 px-2 text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="groups">Группы</div>
+                <div id="private-groups-container" class="space-y-2">
+                    <!-- Group items injected here -->
                 </div>
             </div>
         </div>
 
         <!-- Middle Main Chat Area -->
         <div id="middle-chat" class="flex-1 flex flex-col min-w-0 relative z-0">
-            <!-- Glassmorphism Header -->
+            <!-- Header -->
             <header id="chat-header-toggle" class="h-16 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 px-4 md:px-6 flex items-center justify-between z-10 transition-theme cursor-pointer hover:bg-white/90 dark:hover:bg-slate-800/90">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 w-full max-w-[70%]">
                     <button class="hamburger-btn md:hidden p-2 -ml-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
-                    <!-- Clickable area to open right sidebar -->
-                    <div class="flex items-center gap-3 header-info-click pointer-events-none">
-                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">C</div>
-                        <div>
-                            <h1 class="font-bold text-slate-800 dark:text-white leading-tight">Global Chat FFA</h1>
+                    <div class="flex items-center gap-3 header-info-click pointer-events-none truncate">
+                        <div id="active-chat-avatar" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-md flex-shrink-0 bg-cover bg-center">G</div>
+                        <div class="truncate">
+                            <h1 id="active-chat-title" class="font-bold text-slate-800 dark:text-white leading-tight truncate">Global Chat FFA</h1>
                             <span class="text-xs text-green-500 font-medium">● Online</span>
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-4 pointer-events-none">
-                    <div class="hidden sm:block text-sm text-slate-500 dark:text-slate-400 italic font-medium" id="my-display-name"></div>
-                </div>
             </header>
 
-            <!-- Custom Context Menu for Reply / Delete -->
+            <!-- Context Menu -->
             <div id="custom-context-menu" class="hidden fixed z-50 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 shadow-2xl rounded-xl py-2 w-48 transition-theme">
                 <button id="context-reply" class="w-full text-left px-4 py-3 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-2 select-none active:bg-slate-100 dark:active:bg-slate-700 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                    Ответить
+                    <span data-i18n="reply">Ответить</span>
                 </button>
                 <button id="context-delete" class="w-full text-left px-4 py-3 text-sm hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 flex items-center gap-2 font-semibold select-none active:bg-red-100 dark:active:bg-red-900/40 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    Удалить
+                    <span data-i18n="delete_btn">Удалить</span>
                 </button>
             </div>
 
-            <!-- Messages Area (Transparent background so main-ui shows through) -->
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 transition-theme relative bg-transparent">
-                <div id="chat-status" class="flex justify-center italic text-slate-400 text-sm">Loading global messages...</div>
+            <!-- Messages Area -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 transition-theme relative bg-transparent">
+                <div id="chat-status" class="flex justify-center italic text-slate-400 text-sm">Loading messages...</div>
             </div>
 
-            <!-- Input Area + Reply Preview Area (Glassmorphism) -->
+            <!-- Input Area -->
             <div class="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-t border-slate-200/70 dark:border-slate-800/70 transition-theme flex flex-col w-full z-10">
-                <!-- Swipe / Reply Indicator -->
                 <div id="reply-preview-container" class="hidden px-4 py-2 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between transition-theme">
                     <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 truncate">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                        <span class="font-semibold">Ответ <span id="reply-to-user">@user</span>:</span>
-                        <span id="reply-preview-text" class="italic truncate max-w-xs sm:max-w-md">message content...</span>
+                        <span class="font-semibold"><span data-i18n="reply_to">Ответ</span> <span id="reply-to-user">@user</span>:</span>
+                        <span id="reply-preview-text" class="italic truncate max-w-[200px] sm:max-w-md">message content...</span>
                     </div>
                     <button id="cancel-reply-btn" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-400 dark:text-slate-500 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
-
-                <!-- Main text input form -->
                 <form id="message-form" class="p-4 flex gap-2">
                     <input type="text" id="message-input" placeholder="Введите сообщение..." autocomplete="off"
                         class="flex-1 px-4 py-3 bg-white dark:bg-slate-800/90 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-theme shadow-sm">
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 active:scale-95 transition-all shadow-md">Отправить</button>
+                    <button type="submit" class="bg-blue-600 text-white px-5 sm:px-6 py-3 rounded-xl font-medium hover:bg-blue-700 active:scale-95 transition-all shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:hidden" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                        <span class="hidden sm:inline" data-i18n="send">Отправить</span>
+                    </button>
                 </form>
             </div>
         </div>
 
-        <!-- Right Sidebar (Channel/Profile Data, Glassmorphism, Collapsible) -->
+        <!-- Right Sidebar (Channel Profile) -->
         <div id="right-sidebar-container" class="w-0 flex-shrink-0 transition-[width] duration-300 ease-in-out overflow-hidden border-l border-transparent bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl absolute right-0 h-full z-20 md:relative hidden md:block">
             <div class="w-80 flex flex-col h-full border-l border-slate-200/70 dark:border-slate-800/70">
                 <div class="h-16 border-b border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between px-6">
-                    <span class="font-bold text-slate-800 dark:text-white">Профиль</span>
+                    <span class="font-bold text-slate-800 dark:text-white" data-i18n="channel_info">О канале</span>
                     <button id="close-right-sidebar" class="p-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-500 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-6 flex flex-col items-center text-center">
-                    <div class="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-xl">C</div>
-                    <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Global Chat FFA</h2>
-                    <p class="text-slate-500 dark:text-slate-400 text-sm">Официальный глобальный чат для всех пользователей. Делитесь идеями и общайтесь свободно!</p>
+                <div class="flex-1 overflow-y-auto p-6 flex flex-col items-center text-center custom-scroll">
+                    <div id="sidebar-chat-avatar" class="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-xl bg-cover bg-center">G</div>
+                    <h2 id="sidebar-chat-title" class="text-xl font-bold text-slate-800 dark:text-white mb-2">Global Chat FFA</h2>
+                    <p id="sidebar-chat-desc" class="text-slate-500 dark:text-slate-400 text-sm">Официальный глобальный чат для всех пользователей.</p>
                     
                     <div class="w-full mt-8 pt-6 border-t border-slate-200/50 dark:border-slate-800/50 text-left">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Участники</h3>
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-9 h-9 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm">O</div>
-                            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Online Users</span>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4" data-i18n="members">Участники</h3>
+                        <div id="sidebar-members-list" class="space-y-3">
+                            <div class="text-sm text-slate-500 italic">Global users</div>
                         </div>
                     </div>
                 </div>
@@ -284,7 +404,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, doc, getDoc, setDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuH03O9rNnoVPfaN6VTZ_pwEn5XROTqiU",
@@ -301,229 +421,407 @@
 
         let myUsername = localStorage.getItem('chat-username') || "";
         let chatUnsubscribe = null;
+        let groupsUnsubscribe = null;
         let activeReplyTarget = null; 
         let currentMenuMessage = null; 
         let messageIdToDelete = null;
 
-        const UI = {
-            authOverlay: document.getElementById('auth-overlay'),
-            authCard: document.getElementById('auth-card'),
-            mainUI: document.getElementById('main-ui'),
-            userIn: document.getElementById('username-input'),
-            joinBtn: document.getElementById('join-btn'),
-            chatBox: document.getElementById('chat-messages'),
-            chatStatus: document.getElementById('chat-status'),
-            msgForm: document.getElementById('message-form'),
-            msgIn: document.getElementById('message-input'),
-            display: document.getElementById('my-display-name'),
-            logout: document.getElementById('logout-btn'),
-            
-            // Context menu & reply elements
-            contextMenu: document.getElementById('custom-context-menu'),
-            contextReply: document.getElementById('context-reply'),
-            contextDelete: document.getElementById('context-delete'),
-            replyContainer: document.getElementById('reply-preview-container'),
-            replyUser: document.getElementById('reply-to-user'),
-            replyPreviewText: document.getElementById('reply-preview-text'),
-            cancelReplyBtn: document.getElementById('cancel-reply-btn'),
+        // Current Chat State
+        let currentChannelId = 'global_chat';
+        let currentChannelType = 'public'; // public, group
+        let currentChannelName = 'Global Chat FFA';
 
-            // Custom modal & alert selectors
-            customAlert: document.getElementById('custom-alert'),
-            alertText: document.getElementById('alert-text'),
-            confirmModal: document.getElementById('confirm-modal'),
-            confirmCancel: document.getElementById('confirm-cancel'),
-            confirmDelete: document.getElementById('confirm-delete'),
+        // Cache for users to prevent excessive DB reads
+        const userCache = new Map();
 
-            // New Layout Selectors
-            rightSidebar: document.getElementById('right-sidebar-container'),
-            chatHeaderToggle: document.getElementById('chat-header-toggle'),
-            closeRightSidebar: document.getElementById('close-right-sidebar'),
-            hamburgerBtns: document.querySelectorAll('.hamburger-btn'),
-            hamburgerOverlay: document.getElementById('hamburger-overlay'),
-            hamburgerDrawer: document.getElementById('hamburger-drawer'),
-            closeHamburger: document.getElementById('close-hamburger'),
-            
-            // Settings Selectors
-            settingsModal: document.getElementById('settings-modal'),
-            openSettingsBtn: document.getElementById('open-settings-btn'),
-            closeSettingsBtn: document.getElementById('close-settings-btn'),
-            saveSettingsBtn: document.getElementById('save-settings-btn'),
-            settingsUsername: document.getElementById('settings-username'),
-            settingsBio: document.getElementById('settings-bio')
+        // Dictionary for i18n
+        const i18n = {
+            system: {}, // Will fallback
+            ru: {
+                welcome: "Добро пожаловать", enter_username: "Введите уникальное имя для входа", join: "Войти",
+                settings_title: "Настройки профиля", photo_limits: "Макс 1MB. Авто-сжатие.", username: "Имя пользователя",
+                username_readonly: "Имя пользователя изменить нельзя.", bio: "О себе (описание)", save: "Сохранить",
+                language: "Язык", logout: "Выйти из аккаунта", menu: "Меню", theme: "Тема", chats: "Чаты",
+                global_desc: "Официальный канал", groups: "Группы", reply: "Ответить", delete_btn: "Удалить",
+                reply_to: "Ответ", send: "Отправить", channel_info: "О канале", members: "Участники",
+                delete_title: "Удалить сообщение?", delete_desc: "Вы уверены? Это действие нельзя отменить.",
+                cancel: "Отмена", create_group: "Создать группу", group_name: "Название", group_members: "Пригласить (имена через запятую)",
+                create: "Создать", profile_title: "Профиль пользователя", open_profile: "Мой профиль"
+            },
+            en: {
+                welcome: "Welcome to Chat", enter_username: "Enter a unique username to start", join: "Join Chat",
+                settings_title: "Profile Settings", photo_limits: "Max 1MB. Auto-compress.", username: "Username",
+                username_readonly: "Username cannot be changed.", bio: "About me (bio)", save: "Save",
+                language: "Language", logout: "Log Out", menu: "Menu", theme: "Theme", chats: "Chats",
+                global_desc: "Official channel", groups: "Groups", reply: "Reply", delete_btn: "Delete",
+                reply_to: "Reply to", send: "Send", channel_info: "About Channel", members: "Members",
+                delete_title: "Delete message?", delete_desc: "Are you sure? This cannot be undone.",
+                cancel: "Cancel", create_group: "Create Group", group_name: "Group Name", group_members: "Invite (comma separated)",
+                create: "Create", profile_title: "User Profile", open_profile: "My Profile"
+            },
+            uz: {
+                welcome: "Chatga xush kelibsiz", enter_username: "Boshlash uchun noyob ism kiriting", join: "Kirish",
+                settings_title: "Profil sozlamalari", photo_limits: "Maks 1MB. Avto-siqish.", username: "Foydalanuvchi nomi",
+                username_readonly: "Ismni o'zgartirib bo'lmaydi.", bio: "O'zim haqimda", save: "Saqlash",
+                language: "Til", logout: "Chiqish", menu: "Menyu", theme: "Mavzu", chats: "Chatlar",
+                global_desc: "Rasmiy kanal", groups: "Guruhlar", reply: "Javob berish", delete_btn: "O'chirish",
+                reply_to: "Javob", send: "Yuborish", channel_info: "Kanal haqida", members: "A'zolar",
+                delete_title: "Xabar o'chirilsinmi?", delete_desc: "Ishonchingiz komilmi? Buni bekor qilib bo'lmaydi.",
+                cancel: "Bekor qilish", create_group: "Guruh yaratish", group_name: "Guruh nomi", group_members: "Taklif qilish (vergul bilan)",
+                create: "Yaratish", profile_title: "Foydalanuvchi profili", open_profile: "Mening profilim"
+            }
         };
 
-        // Layout Toggles Logic
-        UI.chatHeaderToggle.addEventListener('click', (e) => {
-            // Prevent toggling when clicking buttons inside header
-            if(e.target.closest('.hamburger-btn')) return;
+        const UI = {
+            mainUI: document.getElementById('main-ui'), authOverlay: document.getElementById('auth-overlay'),
+            authCard: document.getElementById('auth-card'), userIn: document.getElementById('username-input'), joinBtn: document.getElementById('join-btn'),
+            chatBox: document.getElementById('chat-messages'), chatStatus: document.getElementById('chat-status'),
+            msgForm: document.getElementById('message-form'), msgIn: document.getElementById('message-input'),
             
+            contextMenu: document.getElementById('custom-context-menu'), contextReply: document.getElementById('context-reply'),
+            contextDelete: document.getElementById('context-delete'), replyContainer: document.getElementById('reply-preview-container'),
+            replyUser: document.getElementById('reply-to-user'), replyPreviewText: document.getElementById('reply-preview-text'),
+            cancelReplyBtn: document.getElementById('cancel-reply-btn'),
+            
+            customAlert: document.getElementById('custom-alert'), alertText: document.getElementById('alert-text'),
+            confirmModal: document.getElementById('confirm-modal'), confirmCancel: document.getElementById('confirm-cancel'),
+            confirmDelete: document.getElementById('confirm-delete'),
+            
+            rightSidebar: document.getElementById('right-sidebar-container'), chatHeaderToggle: document.getElementById('chat-header-toggle'),
+            closeRightSidebar: document.getElementById('close-right-sidebar'), hamburgerBtns: document.querySelectorAll('.hamburger-btn'),
+            hamburgerOverlay: document.getElementById('hamburger-overlay'), hamburgerDrawer: document.getElementById('hamburger-drawer'),
+            closeHamburger: document.getElementById('close-hamburger'),
+            
+            // Pages
+            settingsPage: document.getElementById('settings-page'), languagePage: document.getElementById('language-page'),
+            createGroupPage: document.getElementById('create-group-page'), userProfilePage: document.getElementById('user-profile-page'),
+            backBtns: document.querySelectorAll('.back-btn'),
+            
+            // Settings Elements
+            openSettingsBtn: document.getElementById('open-settings-btn'), saveSettingsBtn: document.getElementById('save-settings-btn'),
+            settingsUsername: document.getElementById('settings-username'), settingsBio: document.getElementById('settings-bio'),
+            photoInput: document.getElementById('settings-photo-input'), photoContainer: document.getElementById('profile-photo-container'),
+            photoPreview: document.getElementById('settings-avatar-preview'), logout: document.getElementById('logout-btn'),
+            myProfileBtn: document.getElementById('my-profile-btn'), menuAvatar: document.getElementById('menu-avatar'),
+            menuUsername: document.getElementById('menu-username'),
+
+            // Language
+            openLangBtn: document.getElementById('open-language-btn'), langBtns: document.querySelectorAll('.lang-btn'),
+            currentLangText: document.getElementById('current-lang-text'),
+            
+            // Groups
+            openCreateGrpBtn: document.getElementById('open-create-group-btn'), submitGrpBtn: document.getElementById('submit-group-btn'),
+            grpNameIn: document.getElementById('group-name-input'), grpMembersIn: document.getElementById('group-members-input'),
+            grpPhotoInput: document.getElementById('group-photo-input'), grpPhotoContainer: document.getElementById('group-photo-container'),
+            grpPhotoPreview: document.getElementById('group-photo-preview'), privateGroupsContainer: document.getElementById('private-groups-container'),
+            
+            // Active Chat Info
+            activeChatAvatar: document.getElementById('active-chat-avatar'), activeChatTitle: document.getElementById('active-chat-title'),
+            sidebarChatAvatar: document.getElementById('sidebar-chat-avatar'), sidebarChatTitle: document.getElementById('sidebar-chat-title'),
+            sidebarChatDesc: document.getElementById('sidebar-chat-desc'), sidebarMembersList: document.getElementById('sidebar-members-list'),
+
+            // Profile View
+            viewAvatar: document.getElementById('view-profile-avatar'), viewName: document.getElementById('view-profile-name'),
+            viewBio: document.getElementById('view-profile-bio')
+        };
+
+        // --- Internationalization Logic ---
+        function applyLanguage(lang) {
+            localStorage.setItem('chat-lang', lang);
+            const dict = lang === 'system' ? (navigator.language.startsWith('ru') ? i18n.ru : (navigator.language.startsWith('uz') ? i18n.uz : i18n.en)) : i18n[lang] || i18n.ru;
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    if (el.tagName === 'INPUT' && el.placeholder) el.placeholder = dict[key];
+                    else el.textContent = dict[key];
+                }
+            });
+
+            // Update UI selectors
+            UI.langBtns.forEach(btn => {
+                const isSelected = btn.dataset.lang === lang;
+                btn.querySelector('.checkmark').classList.toggle('hidden', !isSelected);
+                if (isSelected) UI.currentLangText.textContent = btn.querySelector('span').textContent;
+            });
+        }
+        applyLanguage(localStorage.getItem('chat-lang') || 'system');
+        UI.openLangBtn.onclick = () => openPage(UI.languagePage);
+        UI.langBtns.forEach(btn => btn.onclick = () => { applyLanguage(btn.dataset.lang); closeTopPage(); });
+
+        // --- Pages Logic ---
+        let pageStack = [];
+        function openPage(pageElement) {
+            pageElement.classList.remove('translate-x-full');
+            pageStack.push(pageElement);
+        }
+        function closeTopPage() {
+            if (pageStack.length > 0) {
+                const top = pageStack.pop();
+                top.classList.add('translate-x-full');
+            }
+        }
+        UI.backBtns.forEach(btn => btn.onclick = closeTopPage);
+
+        // Layout Toggles
+        UI.chatHeaderToggle.addEventListener('click', (e) => {
+            if(e.target.closest('.hamburger-btn')) return;
             if (UI.rightSidebar.classList.contains('w-0')) {
                 UI.rightSidebar.classList.remove('w-0', 'hidden');
                 UI.rightSidebar.classList.add('w-80', 'md:block');
             } else {
                 UI.rightSidebar.classList.add('w-0');
                 UI.rightSidebar.classList.remove('w-80');
-                // Optional hide complete block after transition
                 setTimeout(() => { if(UI.rightSidebar.classList.contains('w-0')) UI.rightSidebar.classList.add('hidden', 'md:block'); }, 300);
             }
         });
-
         UI.closeRightSidebar.addEventListener('click', () => {
-            UI.rightSidebar.classList.add('w-0');
-            UI.rightSidebar.classList.remove('w-80');
+            UI.rightSidebar.classList.add('w-0'); UI.rightSidebar.classList.remove('w-80');
         });
 
-        // Hamburger Drawer Logic
-        const openDrawer = () => {
-            UI.hamburgerOverlay.classList.remove('opacity-0', 'pointer-events-none');
-            UI.hamburgerDrawer.classList.remove('-translate-x-full');
-        };
-        const closeDrawer = () => {
-            UI.hamburgerOverlay.classList.add('opacity-0', 'pointer-events-none');
-            UI.hamburgerDrawer.classList.add('-translate-x-full');
-        };
-
+        // Hamburger
+        const openDrawer = () => { UI.hamburgerOverlay.classList.remove('opacity-0', 'pointer-events-none'); UI.hamburgerDrawer.classList.remove('-translate-x-full'); };
+        const closeDrawer = () => { UI.hamburgerOverlay.classList.add('opacity-0', 'pointer-events-none'); UI.hamburgerDrawer.classList.add('-translate-x-full'); };
         UI.hamburgerBtns.forEach(btn => btn.addEventListener('click', openDrawer));
         UI.closeHamburger.addEventListener('click', closeDrawer);
         UI.hamburgerOverlay.addEventListener('click', closeDrawer);
 
-        // Settings Modal Logic
-        UI.openSettingsBtn.addEventListener('click', () => {
-            closeDrawer();
-            UI.settingsUsername.value = myUsername;
-            UI.settingsBio.value = localStorage.getItem('chat-bio') || "";
-            UI.settingsModal.classList.remove('opacity-0', 'pointer-events-none');
-            UI.settingsModal.firstElementChild.classList.remove('scale-95');
-        });
+        // --- Image Compression Logic (Canvas) ---
+        async function compressImage(file, maxSizeMB = 1) {
+            return new Promise((resolve, reject) => {
+                const maxSizeBytes = maxSizeMB * 1024 * 1024;
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let { width, height } = img;
+                        const maxDim = 800; // Resize to ensure small footprint
+                        if (width > maxDim || height > maxDim) {
+                            if (width > height) { height *= maxDim/width; width = maxDim; }
+                            else { width *= maxDim/height; height = maxDim; }
+                        }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
 
-        const closeSettings = () => {
-            UI.settingsModal.classList.add('opacity-0', 'pointer-events-none');
-            UI.settingsModal.firstElementChild.classList.add('scale-95');
+                        let quality = 0.9;
+                        let base64 = canvas.toDataURL('image/jpeg', quality);
+                        
+                        while (base64.length * 0.75 > maxSizeBytes && quality > 0.1) {
+                            quality -= 0.1;
+                            base64 = canvas.toDataURL('image/jpeg', quality);
+                        }
+                        if (base64.length * 0.75 > maxSizeBytes) reject('Файл слишком большой даже после сжатия.');
+                        else resolve(base64);
+                    }
+                    img.onerror = () => reject("Ошибка чтения изображения");
+                }
+            });
+        }
+
+        let pendingProfilePhoto = null;
+        UI.photoContainer.onclick = () => UI.photoInput.click();
+        UI.photoInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                pendingProfilePhoto = await compressImage(file, 1);
+                UI.photoPreview.style.backgroundImage = `url(${pendingProfilePhoto})`;
+                UI.photoPreview.textContent = "";
+            } catch (err) {
+                triggerAlert(err);
+                UI.photoInput.value = "";
+            }
         };
-        UI.closeSettingsBtn.addEventListener('click', closeSettings);
+
+        // Settings Profile Fetching & Saving
+        UI.myProfileBtn.onclick = () => { closeDrawer(); openPage(UI.settingsPage); loadMySettings(); };
+        UI.openSettingsBtn.addEventListener('click', () => { closeDrawer(); openPage(UI.settingsPage); loadMySettings(); });
+
+        async function loadMySettings() {
+            UI.settingsUsername.value = myUsername;
+            try {
+                const snap = await getDoc(doc(db, 'chat_data', 'unique_usernames', 'list', myUsername));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    UI.settingsBio.value = data.bio || "";
+                    if (data.photoURL) {
+                        UI.photoPreview.style.backgroundImage = `url(${data.photoURL})`;
+                        UI.photoPreview.textContent = "";
+                        pendingProfilePhoto = data.photoURL; // keep existing if not changed
+                    } else {
+                        UI.photoPreview.style.backgroundImage = "none";
+                        UI.photoPreview.textContent = myUsername.charAt(0).toUpperCase();
+                    }
+                }
+            } catch(e) {}
+        }
 
         UI.saveSettingsBtn.addEventListener('click', async () => {
-            const newName = UI.settingsUsername.value.trim().toLowerCase();
             const newBio = UI.settingsBio.value.trim();
-            
-            if (newName.length < 3) return triggerAlert("Имя должно содержать минимум 3 символа.");
-            
             UI.saveSettingsBtn.disabled = true;
-            UI.saveSettingsBtn.textContent = "Сохранение...";
-            
             try {
-                if (newName !== myUsername) {
-                    const nameRef = doc(db, 'chat_data', 'unique_usernames', 'list', newName);
-                    const snap = await getDoc(nameRef);
-                    
-                    if (snap.exists() && snap.data().uid !== auth.currentUser.uid) {
-                        triggerAlert("Это имя уже занято!");
-                        UI.saveSettingsBtn.disabled = false;
-                        UI.saveSettingsBtn.textContent = "Сохранить";
-                        return;
-                    }
-                    
-                    if (myUsername) {
-                        await deleteDoc(doc(db, 'chat_data', 'unique_usernames', 'list', myUsername));
-                    }
-                    await setDoc(nameRef, { uid: auth.currentUser.uid, bio: newBio });
-                    
-                    myUsername = newName;
-                    localStorage.setItem('chat-username', newName);
-                    UI.display.textContent = `@${myUsername}`;
-                } else {
-                    const nameRef = doc(db, 'chat_data', 'unique_usernames', 'list', myUsername);
-                    await setDoc(nameRef, { uid: auth.currentUser.uid, bio: newBio }, { merge: true });
-                }
+                const nameRef = doc(db, 'chat_data', 'unique_usernames', 'list', myUsername);
+                const updates = { bio: newBio };
+                if (pendingProfilePhoto) updates.photoURL = pendingProfilePhoto;
+                await setDoc(nameRef, updates, { merge: true });
                 
-                localStorage.setItem('chat-bio', newBio);
-                triggerAlert("Настройки успешно сохранены.");
-                closeSettings();
-            } catch (e) {
-                console.error(e);
-                triggerAlert("Ошибка при сохранении.");
-            }
-            
+                // Update local visual state
+                userCache.set(myUsername, { bio: newBio, photoURL: pendingProfilePhoto });
+                updateSidebarMenuUser();
+                
+                triggerAlert("Сохранено!");
+                closeTopPage();
+            } catch (e) { triggerAlert("Ошибка сохранения."); }
             UI.saveSettingsBtn.disabled = false;
-            UI.saveSettingsBtn.textContent = "Сохранить";
         });
 
+        function updateSidebarMenuUser() {
+            UI.menuUsername.textContent = `@${myUsername}`;
+            const cached = userCache.get(myUsername);
+            if (cached && cached.photoURL) {
+                UI.menuAvatar.style.backgroundImage = `url(${cached.photoURL})`;
+                UI.menuAvatar.textContent = "";
+            } else {
+                UI.menuAvatar.style.backgroundImage = "none";
+                UI.menuAvatar.textContent = myUsername.charAt(0).toUpperCase();
+            }
+        }
 
-        // Custom non-blocking alert function
-        function triggerAlert(message) {
-            UI.alertText.textContent = message;
-            UI.customAlert.classList.remove('opacity-0', '-translate-y-16');
+        // --- Fetch User Details Logic ---
+        async function fetchUserProfile(username) {
+            if (userCache.has(username)) return userCache.get(username);
+            try {
+                const snap = await getDoc(doc(db, 'chat_data', 'unique_usernames', 'list', username));
+                if (snap.exists()) {
+                    userCache.set(username, snap.data());
+                    return snap.data();
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        async function openUserProfile(username) {
+            UI.viewName.textContent = `@${username}`;
+            UI.viewBio.textContent = "Loading...";
+            UI.viewAvatar.style.backgroundImage = "none";
+            UI.viewAvatar.textContent = username.charAt(0).toUpperCase();
+            openPage(UI.userProfilePage);
+            
+            const profile = await fetchUserProfile(username);
+            if (profile) {
+                UI.viewBio.textContent = profile.bio || "Нет описания.";
+                if (profile.photoURL) {
+                    UI.viewAvatar.style.backgroundImage = `url(${profile.photoURL})`;
+                    UI.viewAvatar.textContent = "";
+                }
+            }
+        }
+
+        // --- Group Creation Logic ---
+        let pendingGroupPhoto = null;
+        UI.grpPhotoContainer.onclick = () => UI.grpPhotoInput.click();
+        UI.grpPhotoInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                pendingGroupPhoto = await compressImage(file, 1);
+                UI.grpPhotoPreview.style.backgroundImage = `url(${pendingGroupPhoto})`;
+                UI.grpPhotoPreview.textContent = "";
+            } catch (err) { triggerAlert(err); UI.grpPhotoInput.value = ""; }
+        };
+
+        UI.openCreateGrpBtn.onclick = () => {
+            UI.grpNameIn.value = ""; UI.grpMembersIn.value = ""; pendingGroupPhoto = null;
+            UI.grpPhotoPreview.style.backgroundImage = "none"; UI.grpPhotoPreview.textContent = "G";
+            openPage(UI.createGroupPage);
+        };
+
+        UI.submitGrpBtn.onclick = async () => {
+            const name = UI.grpNameIn.value.trim();
+            if (!name) return triggerAlert("Введите название группы");
+            
+            let rawMembers = UI.grpMembersIn.value.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
+            let members = [myUsername];
+            rawMembers.forEach(m => { if (m !== myUsername && !members.includes(m)) members.push(m); });
+
+            UI.submitGrpBtn.disabled = true;
+            try {
+                const payload = {
+                    name, members, createdBy: myUsername, createdAt: serverTimestamp()
+                };
+                if (pendingGroupPhoto) payload.photoURL = pendingGroupPhoto;
+                
+                await addDoc(collection(db, 'chat_data', 'groups', 'list'), payload);
+                triggerAlert("Группа создана!");
+                closeTopPage();
+            } catch (e) { triggerAlert("Ошибка создания группы"); }
+            UI.submitGrpBtn.disabled = false;
+        };
+
+        // --- Alerts & Modals ---
+        function triggerAlert(msg) {
+            UI.alertText.textContent = msg;
+            UI.customAlert.classList.remove('opacity-0', '-translate-y-16', 'pointer-events-none');
             UI.customAlert.classList.add('opacity-100', 'translate-y-0');
             setTimeout(() => {
                 UI.customAlert.classList.remove('opacity-100', 'translate-y-0');
-                UI.customAlert.classList.add('opacity-0', '-translate-y-16');
+                UI.customAlert.classList.add('opacity-0', '-translate-y-16', 'pointer-events-none');
             }, 3500);
         }
 
-        // Custom Delete Modal Trigger logic
         function triggerDeleteModal(messageId) {
             messageIdToDelete = messageId;
-            UI.confirmModal.classList.remove('opacity-0', 'pointer-events-none');
-            UI.confirmModal.classList.add('opacity-100');
-            UI.confirmModal.firstElementChild.classList.remove('scale-90');
-            UI.confirmModal.firstElementChild.classList.add('scale-100');
+            UI.confirmModal.classList.remove('opacity-0', 'pointer-events-none'); UI.confirmModal.classList.add('opacity-100');
+            UI.confirmModal.firstElementChild.classList.remove('scale-90'); UI.confirmModal.firstElementChild.classList.add('scale-100');
         }
 
         function closeDeleteModal() {
-            UI.confirmModal.classList.remove('opacity-100');
-            UI.confirmModal.classList.add('opacity-0', 'pointer-events-none');
-            UI.confirmModal.firstElementChild.classList.remove('scale-100');
-            UI.confirmModal.firstElementChild.classList.add('scale-90');
+            UI.confirmModal.classList.remove('opacity-100'); UI.confirmModal.classList.add('opacity-0', 'pointer-events-none');
+            UI.confirmModal.firstElementChild.classList.remove('scale-100'); UI.confirmModal.firstElementChild.classList.add('scale-90');
             messageIdToDelete = null;
         }
 
         UI.confirmCancel.onclick = closeDeleteModal;
-
         UI.confirmDelete.onclick = async () => {
             if (messageIdToDelete) {
                 const targetId = messageIdToDelete;
                 closeDeleteModal();
                 try {
-                    const targetRef = doc(db, 'chat_data', 'global_chat', 'messages', targetId);
-                    await deleteDoc(targetRef);
-                    triggerAlert("Сообщение удалено.");
-                } catch(err) {
-                    console.error("Delete operation failure:", err);
-                    triggerAlert("Ошибка: Недостаточно прав.");
-                }
+                    const collPath = currentChannelType === 'public' 
+                        ? collection(db, 'chat_data', 'global_chat', 'messages')
+                        : collection(db, 'chat_data', 'groups', 'list', currentChannelId, 'messages');
+                    await deleteDoc(doc(collPath, targetId));
+                } catch(err) { triggerAlert("Ошибка удаления."); }
             }
         };
 
-        // Complete Theme Controller Bindings
         document.querySelectorAll('.theme-btn').forEach(btn => {
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                const selectedTheme = btn.dataset.theme;
-                applyTheme(selectedTheme);
-                closeDrawer();
-            };
+            btn.onclick = (e) => { applyTheme(btn.dataset.theme); closeDrawer(); };
         });
         
-        // Hide context menu on background interactions
         document.addEventListener('pointerdown', (e) => {
-            if (!UI.contextMenu.contains(e.target)) {
-                UI.contextMenu.classList.add('hidden');
-            }
+            if (!UI.contextMenu.contains(e.target)) UI.contextMenu.classList.add('hidden');
         });
 
-        // Session auth lifecycle
-        onAuthStateChanged(auth, (user) => {
+        // --- Auth & Join ---
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                if (myUsername) enterChat();
+                if (myUsername) {
+                    await fetchUserProfile(myUsername); // Preload own profile
+                    enterChat();
+                }
             } else {
-                signInAnonymously(auth).catch(e => console.error("Initial login attempt failure:", e));
+                signInAnonymously(auth).catch(e => {});
             }
         });
 
-        // Unique Join Mechanism
         async function joinChat() {
             const user = UI.userIn.value.trim().toLowerCase();
-            if (user.length < 3) return triggerAlert("Username must be at least 3 characters.");
+            if (user.length < 3) return triggerAlert("Имя должно быть >= 3 символов");
             UI.joinBtn.disabled = true;
 
             try {
@@ -532,305 +830,252 @@
                 const currentUser = auth.currentUser;
 
                 if (snap.exists() && snap.data().uid !== currentUser.uid) {
-                    triggerAlert("This username is taken! Try another one.");
-                    UI.joinBtn.disabled = false;
+                    triggerAlert("Имя занято!"); UI.joinBtn.disabled = false;
                 } else {
-                    await setDoc(nameRef, { uid: currentUser.uid });
+                    await setDoc(nameRef, { uid: currentUser.uid }, { merge: true });
                     myUsername = user;
                     localStorage.setItem('chat-username', user);
+                    await fetchUserProfile(myUsername);
                     enterChat();
                 }
-            } catch (e) {
-                console.error(e);
-                triggerAlert("Permission issue. Firestore path blocked.");
-                UI.joinBtn.disabled = false;
-            }
+            } catch (e) { UI.joinBtn.disabled = false; }
         }
 
-        // Fluid scale/fade out of login view and smooth slide up of Chat panel
         function enterChat() {
-            UI.display.textContent = `@${myUsername}`;
-            
-            // 1. Scale and fade out Auth overlay cards
-            UI.authCard.classList.remove('scale-100');
-            UI.authCard.classList.add('scale-95', 'opacity-0');
+            updateSidebarMenuUser();
+            UI.authCard.classList.remove('scale-100'); UI.authCard.classList.add('scale-95', 'opacity-0');
             UI.authOverlay.classList.add('opacity-0', 'pointer-events-none');
-            
-            // 2. Make Main Chat UI ready but invisible
             UI.mainUI.classList.remove('hidden');
             
-            // 3. Trigger micro-animation thread for flawless transition
             setTimeout(() => {
                 UI.authOverlay.classList.add('hidden');
                 UI.mainUI.classList.remove('opacity-0', 'translate-y-8', 'pointer-events-none');
                 UI.mainUI.classList.add('opacity-100', 'translate-y-0');
-                startChat();
+                listenToGroups();
+                startChat('global_chat', 'Global Chat FFA', 'public');
             }, 500);
         }
 
-        // Live Chat Feed subscription
-        function startChat() {
-            if (chatUnsubscribe) chatUnsubscribe();
-            const q = query(collection(db, 'chat_data', 'global_chat', 'messages'));
+        // --- Channels Setup ---
+        function listenToGroups() {
+            if (groupsUnsubscribe) groupsUnsubscribe();
+            const q = query(collection(db, 'chat_data', 'groups', 'list'), where('members', 'array-contains', myUsername));
             
+            groupsUnsubscribe = onSnapshot(q, (snap) => {
+                UI.privateGroupsContainer.innerHTML = "";
+                snap.forEach(d => {
+                    const grp = d.data();
+                    const el = document.createElement('div');
+                    el.className = `channel-item p-3 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-xl cursor-pointer transition-colors flex items-center gap-3 ${currentChannelId === d.id ? 'bg-indigo-500/10 dark:bg-indigo-500/20 border-indigo-500/20' : ''}`;
+                    el.dataset.id = d.id; el.dataset.type = 'group'; el.dataset.name = grp.name;
+                    
+                    const avatarContent = grp.photoURL 
+                        ? `<div class="w-10 h-10 rounded-full flex-shrink-0 bg-cover bg-center shadow-sm" style="background-image: url(${grp.photoURL})"></div>`
+                        : `<div class="w-10 h-10 bg-indigo-500 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold shadow-sm">${grp.name.charAt(0).toUpperCase()}</div>`;
+                    
+                    el.innerHTML = `
+                        ${avatarContent}
+                        <div class="overflow-hidden">
+                            <div class="font-medium text-slate-700 dark:text-slate-300 truncate">${escapeHtml(grp.name)}</div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">${grp.members.length} members</div>
+                        </div>
+                    `;
+                    el.onclick = () => {
+                        // Switch active state UI
+                        document.querySelectorAll('.channel-item').forEach(c => c.classList.remove('bg-blue-500/10', 'dark:bg-blue-500/20', 'border-blue-500/20', 'bg-indigo-500/10', 'dark:bg-indigo-500/20', 'border-indigo-500/20'));
+                        el.classList.add('bg-indigo-500/10', 'dark:bg-indigo-500/20', 'border-indigo-500/20');
+                        startChat(d.id, grp.name, 'group', grp);
+                        if(window.innerWidth < 768) { UI.leftSidebar.classList.add('hidden'); } // Close sidebar on mobile
+                    };
+                    UI.privateGroupsContainer.appendChild(el);
+                });
+            });
+
+            // Re-bind global chat click
+            const globalChatEl = document.querySelector('[data-id="global_chat"]');
+            globalChatEl.onclick = () => {
+                document.querySelectorAll('.channel-item').forEach(c => c.classList.remove('bg-blue-500/10', 'dark:bg-blue-500/20', 'border-blue-500/20', 'bg-indigo-500/10', 'dark:bg-indigo-500/20', 'border-indigo-500/20'));
+                globalChatEl.classList.add('bg-blue-500/10', 'dark:bg-blue-500/20', 'border-blue-500/20');
+                startChat('global_chat', 'Global Chat FFA', 'public');
+                if(window.innerWidth < 768) { UI.leftSidebar.classList.add('hidden'); }
+            };
+        }
+
+        function startChat(id, name, type, groupData = null) {
+            currentChannelId = id; currentChannelType = type; currentChannelName = name;
+            
+            // Update Header & Sidebar UI
+            UI.activeChatTitle.textContent = name;
+            UI.sidebarChatTitle.textContent = name;
+            
+            if (type === 'public') {
+                UI.activeChatAvatar.style.backgroundImage = "none"; UI.activeChatAvatar.textContent = "G"; UI.activeChatAvatar.className = "w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-md flex-shrink-0 bg-cover bg-center";
+                UI.sidebarChatAvatar.style.backgroundImage = "none"; UI.sidebarChatAvatar.textContent = "G"; UI.sidebarChatAvatar.className = "w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-xl bg-cover bg-center";
+                UI.sidebarChatDesc.textContent = "Официальный глобальный чат.";
+                UI.sidebarMembersList.innerHTML = `<div class="text-sm text-slate-500 italic">Global users</div>`;
+            } else if (type === 'group' && groupData) {
+                if (groupData.photoURL) {
+                    const bgStyle = `url(${groupData.photoURL})`;
+                    UI.activeChatAvatar.style.backgroundImage = bgStyle; UI.activeChatAvatar.textContent = "";
+                    UI.sidebarChatAvatar.style.backgroundImage = bgStyle; UI.sidebarChatAvatar.textContent = "";
+                } else {
+                    UI.activeChatAvatar.style.backgroundImage = "none"; UI.activeChatAvatar.textContent = name.charAt(0).toUpperCase();
+                    UI.sidebarChatAvatar.style.backgroundImage = "none"; UI.sidebarChatAvatar.textContent = name.charAt(0).toUpperCase();
+                }
+                UI.activeChatAvatar.className = "w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold shadow-md flex-shrink-0 bg-cover bg-center";
+                UI.sidebarChatAvatar.className = "w-24 h-24 bg-indigo-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-xl bg-cover bg-center";
+                UI.sidebarChatDesc.textContent = "Частная группа";
+                
+                UI.sidebarMembersList.innerHTML = groupData.members.map(m => `
+                    <div class="flex items-center gap-2 mb-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 p-1 rounded transition-colors" onclick="document.dispatchEvent(new CustomEvent('openProfile', {detail: '${m}'}))">
+                        <div class="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center text-[10px] text-slate-700 font-bold">${m.charAt(0).toUpperCase()}</div>
+                        <span class="text-sm font-medium text-slate-700 dark:text-slate-300">@${m}</span>
+                    </div>
+                `).join('');
+            }
+
+            UI.chatBox.innerHTML = "";
+            UI.chatStatus.classList.remove('hidden');
+
+            if (chatUnsubscribe) chatUnsubscribe();
+            
+            const collPath = type === 'public' 
+                ? collection(db, 'chat_data', 'global_chat', 'messages')
+                : collection(db, 'chat_data', 'groups', 'list', id, 'messages');
+
+            const q = query(collPath);
             chatUnsubscribe = onSnapshot(q, (snap) => {
                 UI.chatStatus.classList.add('hidden');
                 let msgs = [];
-                snap.forEach(d => {
-                    msgs.push({ id: d.id, ...d.data() });
-                });
-                
-                // Keep clean chronologically ordered memory sort
+                snap.forEach(d => msgs.push({ id: d.id, ...d.data() }));
                 msgs.sort((a,b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
                 
                 UI.chatBox.innerHTML = "";
-                msgs.forEach(m => {
-                    const isMe = m.username === myUsername;
-                    const container = document.createElement('div');
-                    container.className = "message-row relative w-full flex flex-col py-1 overflow-visible";
-                    container.dataset.id = m.id;
-                    container.dataset.username = m.username;
-                    container.dataset.text = m.text;
-                    
-                    // Reply bubble template insertion
-                    let replyHtml = '';
-                    if (m.replyTo) {
-                        replyHtml = `
-                            <div class="mb-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-200/50 dark:bg-slate-800/60 px-2.5 py-1 rounded-lg inline-block truncate max-w-[200px]">
-                                ↩ Ответ <span class="font-semibold">@${m.replyTo.username}</span>: ${escapeHtml(m.replyTo.text)}
-                            </div>
-                        `;
-                    }
-
-                    container.innerHTML = `
-                        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-full px-1">
-                            <div class="max-w-[85%]">
-                                ${replyHtml}
-                                <div class="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5 ml-1 ${isMe ? 'text-right' : ''}">
-                                    ${isMe ? 'You' : '@'+m.username}
-                                </div>
-                                <div class="message-bubble px-4 py-2.5 rounded-2xl text-sm ${
-                                    isMe 
-                                    ? 'bg-blue-600 text-white rounded-tr-none shadow-md' 
-                                    : 'bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-tl-none shadow-sm'
-                                }">
-                                    ${escapeHtml(m.text)}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    setupSwipeToReply(container, m);
-                    setupContextHandlers(container, m);
-
-                    UI.chatBox.appendChild(container);
-                });
+                msgs.forEach(m => renderMessage(m));
                 UI.chatBox.scrollTop = UI.chatBox.scrollHeight;
             });
         }
 
-        // Global block to prevent swipe and menu showing simultaneously
+        async function renderMessage(m) {
+            const isMe = m.username === myUsername;
+            const container = document.createElement('div');
+            container.className = "message-row relative w-full flex flex-col py-1 overflow-visible";
+            container.dataset.id = m.id; container.dataset.username = m.username; container.dataset.text = m.text;
+            
+            let replyHtml = m.replyTo ? `
+                <div class="mb-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-200/50 dark:bg-slate-800/60 px-2.5 py-1 rounded-lg inline-block truncate max-w-[200px]">
+                    ↩ <span class="font-semibold">@${m.replyTo.username}</span>: ${escapeHtml(m.replyTo.text)}
+                </div>` : '';
+
+            // Setup avatar structure
+            const avatarId = `msg-avatar-${m.id}`;
+            const avatarHtml = `<div id="${avatarId}" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold cursor-pointer bg-cover bg-center mt-1" onclick="document.dispatchEvent(new CustomEvent('openProfile', {detail: '${m.username}'}))">${m.username.charAt(0).toUpperCase()}</div>`;
+
+            container.innerHTML = `
+                <div class="flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end max-w-full gap-1.5 sm:gap-2">
+                    ${isMe ? '' : avatarHtml}
+                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[80%]">
+                        ${replyHtml}
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5 ml-1 ${isMe ? 'text-right' : ''} cursor-pointer hover:underline" onclick="document.dispatchEvent(new CustomEvent('openProfile', {detail: '${m.username}'}))">
+                            ${isMe ? 'You' : '@'+m.username}
+                        </div>
+                        <div class="message-bubble px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl text-sm ${
+                            isMe ? 'bg-blue-600 text-white rounded-br-none shadow-md' : 'bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-bl-none shadow-sm'
+                        }">${escapeHtml(m.text)}</div>
+                    </div>
+                </div>
+            `;
+            
+            setupSwipeToReply(container, m); setupContextHandlers(container, m);
+            UI.chatBox.appendChild(container);
+
+            // Lazy load avatar if not me
+            if (!isMe) {
+                const profile = await fetchUserProfile(m.username);
+                if (profile && profile.photoURL) {
+                    const avEl = document.getElementById(avatarId);
+                    if(avEl) { avEl.style.backgroundImage = `url(${profile.photoURL})`; avEl.textContent = ""; }
+                }
+            }
+        }
+
+        // Global Event for profile opening
+        document.addEventListener('openProfile', (e) => { openUserProfile(e.detail); });
+
+        // --- Interaction Logic ---
         let isLongPressActive = false;
 
-        // Swipe-to-Left Reply Handler
         function setupSwipeToReply(elem, messageObj) {
-            let startX = 0;
-            let currentX = 0;
-            let isSwiping = false;
+            let startX = 0, currentX = 0, isSwiping = false;
             const bubble = elem.querySelector('.message-bubble');
 
-            elem.addEventListener('touchstart', (e) => {
-                if (isLongPressActive) return; 
-                startX = e.touches[0].clientX;
-                isSwiping = true;
-            }, { passive: true });
-
+            elem.addEventListener('touchstart', (e) => { if (isLongPressActive) return; startX = e.touches[0].clientX; isSwiping = true; }, { passive: true });
             elem.addEventListener('touchmove', (e) => {
-                if (!isSwiping || isLongPressActive) {
-                    bubble.style.transform = '';
-                    return;
-                }
-                currentX = e.touches[0].clientX;
-                const diffX = currentX - startX;
-                
-                if (diffX < 0 && diffX > -100) {
-                    bubble.style.transform = `translateX(${diffX}px)`;
-                }
+                if (!isSwiping || isLongPressActive) { bubble.style.transform = ''; return; }
+                currentX = e.touches[0].clientX; const diffX = currentX - startX;
+                if (diffX < 0 && diffX > -80) bubble.style.transform = `translateX(${diffX}px)`;
             }, { passive: true });
-
             elem.addEventListener('touchend', () => {
-                if (!isSwiping) return;
-                isSwiping = false;
-                bubble.style.transform = ''; 
-
+                if (!isSwiping) return; isSwiping = false; bubble.style.transform = ''; 
                 if (isLongPressActive) return; 
-
-                const diffX = currentX - startX;
-                if (diffX < -55 && currentX !== 0) {
-                    setReplyTarget(messageObj);
-                }
+                if ((currentX - startX) < -50 && currentX !== 0) setReplyTarget(messageObj);
                 currentX = 0;
             });
         }
 
-        // Setup PC Right-Click and Mobile hold handlers
         function setupContextHandlers(elem, messageObj) {
-            let holdTimeout;
-            const bubble = elem.querySelector('.message-bubble');
-
-            elem.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                showContextMenu(e.clientX, e.clientY, messageObj);
-            });
-
+            let holdTimeout; const bubble = elem.querySelector('.message-bubble');
+            elem.addEventListener('contextmenu', (e) => { e.preventDefault(); showContextMenu(e.clientX, e.clientY, messageObj); });
             elem.addEventListener('touchstart', (e) => {
-                isLongPressActive = false;
-                bubble.style.transform = 'scale(0.94)';
-                
+                isLongPressActive = false; bubble.style.transform = 'scale(0.96)';
                 holdTimeout = setTimeout(() => {
-                    isLongPressActive = true;
-                    const touch = e.touches[0];
-                    showContextMenu(touch.clientX, touch.clientY, messageObj);
-                    bubble.style.transform = 'scale(1.04)';
-                    setTimeout(() => { bubble.style.transform = ''; }, 150);
+                    isLongPressActive = true; showContextMenu(e.touches[0].clientX, e.touches[0].clientY, messageObj);
+                    bubble.style.transform = 'scale(1.02)'; setTimeout(() => bubble.style.transform = '', 150);
                 }, 500); 
             }, { passive: true });
-
-            elem.addEventListener('touchend', () => {
-                clearTimeout(holdTimeout);
-                if (!isLongPressActive) {
-                    bubble.style.transform = ''; 
-                }
-                setTimeout(() => { isLongPressActive = false; }, 200);
-            });
-
-            elem.addEventListener('touchmove', () => {
-                clearTimeout(holdTimeout);
-                if (!isLongPressActive) {
-                    bubble.style.transform = ''; 
-                }
-            });
+            elem.addEventListener('touchend', () => { clearTimeout(holdTimeout); if (!isLongPressActive) bubble.style.transform = ''; setTimeout(() => isLongPressActive = false, 200); });
+            elem.addEventListener('touchmove', () => { clearTimeout(holdTimeout); if (!isLongPressActive) bubble.style.transform = ''; });
         }
 
-        // Context menu positioning and show rule
         function showContextMenu(x, y, messageObj) {
-            currentMenuMessage = messageObj;
-            UI.contextMenu.classList.remove('hidden');
-
-            const menuWidth = 192; 
-            const menuHeight = 110;
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-
-            let adjustedX = x;
-            let adjustedY = y;
-
-            if (x + menuWidth > windowWidth) adjustedX = windowWidth - menuWidth - 10;
-            if (y + menuHeight > windowHeight) adjustedY = windowHeight - menuHeight - 10;
-
-            UI.contextMenu.style.left = `${adjustedX}px`;
-            UI.contextMenu.style.top = `${adjustedY}px`;
-
-            const isMyMsg = messageObj.username === myUsername;
-            if (isMyMsg) {
-                UI.contextDelete.style.display = 'flex';
-            } else {
-                UI.contextDelete.style.display = 'none';
-            }
+            currentMenuMessage = messageObj; UI.contextMenu.classList.remove('hidden');
+            let ax = x, ay = y;
+            if (x + 192 > window.innerWidth) ax = window.innerWidth - 200;
+            if (y + 110 > window.innerHeight) ay = window.innerHeight - 120;
+            UI.contextMenu.style.left = `${ax}px`; UI.contextMenu.style.top = `${ay}px`;
+            UI.contextDelete.style.display = (messageObj.username === myUsername) ? 'flex' : 'none';
         }
 
-        function setReplyTarget(msg) {
-            activeReplyTarget = msg;
-            UI.replyUser.textContent = `@${msg.username}`;
-            UI.replyPreviewText.textContent = msg.text;
-            UI.replyContainer.classList.remove('hidden');
-            UI.msgIn.focus();
-        }
-
-        function clearReplyState() {
-            activeReplyTarget = null;
-            UI.replyContainer.classList.add('hidden');
-        }
-
+        function setReplyTarget(msg) { activeReplyTarget = msg; UI.replyUser.textContent = `@${msg.username}`; UI.replyPreviewText.textContent = msg.text; UI.replyContainer.classList.remove('hidden'); UI.msgIn.focus(); }
+        function clearReplyState() { activeReplyTarget = null; UI.replyContainer.classList.add('hidden'); }
         UI.cancelReplyBtn.onclick = clearReplyState;
 
-        // Custom touch handlers to make mobile interactions click instantly without latency
-        const handleReplyAction = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (currentMenuMessage) {
-                setReplyTarget(currentMenuMessage);
-            }
-            UI.contextMenu.classList.add('hidden');
-        };
+        const handleReplyAction = (e) => { e.preventDefault(); e.stopPropagation(); if (currentMenuMessage) setReplyTarget(currentMenuMessage); UI.contextMenu.classList.add('hidden'); };
+        const handleDeleteAction = (e) => { e.preventDefault(); e.stopPropagation(); if (currentMenuMessage) triggerDeleteModal(currentMenuMessage.id); UI.contextMenu.classList.add('hidden'); };
+        UI.contextReply.addEventListener('touchstart', handleReplyAction, { passive: false }); UI.contextReply.addEventListener('click', handleReplyAction);
+        UI.contextDelete.addEventListener('touchstart', handleDeleteAction, { passive: false }); UI.contextDelete.addEventListener('click', handleDeleteAction);
 
-        const handleDeleteAction = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            if (currentMenuMessage) {
-                const targetMsgId = currentMenuMessage.id;
-                UI.contextMenu.classList.add('hidden');
-                
-                triggerDeleteModal(targetMsgId);
-            }
-        };
-
-        UI.contextReply.addEventListener('touchstart', handleReplyAction, { passive: false });
-        UI.contextReply.addEventListener('click', handleReplyAction);
-
-        UI.contextDelete.addEventListener('touchstart', handleDeleteAction, { passive: false });
-        UI.contextDelete.addEventListener('click', handleDeleteAction);
-
-        // Form Submit
+        // --- Submit ---
         UI.msgForm.onsubmit = async (e) => {
             e.preventDefault();
-            const val = UI.msgIn.value.trim();
-            if (!val) return;
-            UI.msgIn.value = "";
-
-            const payload = {
-                text: val,
-                username: myUsername,
-                createdAt: serverTimestamp()
-            };
-
-            if (activeReplyTarget) {
-                payload.replyTo = {
-                    username: activeReplyTarget.username,
-                    text: activeReplyTarget.text
-                };
-                clearReplyState();
-            }
-
-            await addDoc(collection(db, 'chat_data', 'global_chat', 'messages'), payload);
+            const val = UI.msgIn.value.trim(); if (!val) return; UI.msgIn.value = "";
+            const payload = { text: val, username: myUsername, createdAt: serverTimestamp() };
+            if (activeReplyTarget) { payload.replyTo = { username: activeReplyTarget.username, text: activeReplyTarget.text }; clearReplyState(); }
+            
+            const collPath = currentChannelType === 'public' 
+                ? collection(db, 'chat_data', 'global_chat', 'messages')
+                : collection(db, 'chat_data', 'groups', 'list', currentChannelId, 'messages');
+            await addDoc(collPath, payload);
         };
 
         UI.joinBtn.onclick = joinChat;
         UI.userIn.onkeypress = (e) => { if (e.key === 'Enter') joinChat(); };
 
-        // Safe Logout Routine
         UI.logout.onclick = async () => {
-            try {
-                if (myUsername) {
-                    const nameRef = doc(db, 'chat_data', 'unique_usernames', 'list', myUsername);
-                    await deleteDoc(nameRef);
-                }
-            } catch (err) {
-                console.warn("Wiping name registration on checkout had a minor fail: ", err);
-            }
-            
-            signOut(auth);
-            localStorage.removeItem('chat-username');
-            localStorage.removeItem('chat-bio');
-            window.location.reload();
+            signOut(auth); localStorage.removeItem('chat-username'); window.location.reload();
         };
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
     </script>
 </body>
 </html>
