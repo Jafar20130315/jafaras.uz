@@ -302,7 +302,7 @@
             </div>
             <div class="flex-1 overflow-y-auto p-3 space-y-2 custom-scroll" id="channels-list">
                 <!-- Global Chat Item -->
-                <div data-id="global_chat" data-type="public" class="channel-item p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl cursor-pointer border border-blue-500/20 transition-colors flex items-center gap-3">
+                <div data-id="global_messages" data-type="public" class="channel-item p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl cursor-pointer border border-blue-500/20 transition-colors flex items-center gap-3">
                     <div class="w-10 h-10 bg-blue-500 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold shadow-sm">G</div>
                     <div class="overflow-hidden">
                         <div class="font-semibold text-slate-800 dark:text-white truncate">Global Chat FFA</div>
@@ -403,21 +403,17 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, doc, getDoc, setDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDuH03O9rNnoVPfaN6VTZ_pwEn5XROTqiU",
-            authDomain: "chatg-ff03f.firebaseapp.com",
-            projectId: "chatg-ff03f",
-            storageBucket: "chatg-ff03f.firebasestorage.app",
-            messagingSenderId: "11794719598",
-            appId: "1:11794719598:web:e427bd5f136f9379d2d77f"
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "MOCK", projectId: "mock", appId: "mock"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         let myUsername = localStorage.getItem('chat-username') || "";
         let chatUnsubscribe = null;
@@ -427,16 +423,15 @@
         let messageIdToDelete = null;
 
         // Current Chat State
-        let currentChannelId = 'global_chat';
-        let currentChannelType = 'public'; // public, group
+        let currentChannelId = 'global_messages';
+        let currentChannelType = 'public'; 
         let currentChannelName = 'Global Chat FFA';
 
-        // Cache for users to prevent excessive DB reads
         const userCache = new Map();
 
         // Dictionary for i18n
         const i18n = {
-            system: {}, // Will fallback
+            system: {},
             ru: {
                 welcome: "Добро пожаловать", enter_username: "Введите уникальное имя для входа", join: "Войти",
                 settings_title: "Настройки профиля", photo_limits: "Макс 1MB. Авто-сжатие.", username: "Имя пользователя",
@@ -538,7 +533,6 @@
                 }
             });
 
-            // Update UI selectors
             UI.langBtns.forEach(btn => {
                 const isSelected = btn.dataset.lang === lang;
                 btn.querySelector('.checkmark').classList.toggle('hidden', !isSelected);
@@ -598,7 +592,7 @@
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
                         let { width, height } = img;
-                        const maxDim = 800; // Resize to ensure small footprint
+                        const maxDim = 800; 
                         if (width > maxDim || height > maxDim) {
                             if (width > height) { height *= maxDim/width; width = maxDim; }
                             else { width *= maxDim/height; height = maxDim; }
@@ -644,14 +638,14 @@
         async function loadMySettings() {
             UI.settingsUsername.value = myUsername;
             try {
-                const snap = await getDoc(doc(db, 'chat_data', 'unique_usernames', 'list', myUsername));
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', myUsername));
                 if (snap.exists()) {
                     const data = snap.data();
                     UI.settingsBio.value = data.bio || "";
                     if (data.photoURL) {
                         UI.photoPreview.style.backgroundImage = `url(${data.photoURL})`;
                         UI.photoPreview.textContent = "";
-                        pendingProfilePhoto = data.photoURL; // keep existing if not changed
+                        pendingProfilePhoto = data.photoURL; 
                     } else {
                         UI.photoPreview.style.backgroundImage = "none";
                         UI.photoPreview.textContent = myUsername.charAt(0).toUpperCase();
@@ -664,12 +658,11 @@
             const newBio = UI.settingsBio.value.trim();
             UI.saveSettingsBtn.disabled = true;
             try {
-                const nameRef = doc(db, 'chat_data', 'unique_usernames', 'list', myUsername);
+                const nameRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', myUsername);
                 const updates = { bio: newBio };
                 if (pendingProfilePhoto) updates.photoURL = pendingProfilePhoto;
                 await setDoc(nameRef, updates, { merge: true });
                 
-                // Update local visual state
                 userCache.set(myUsername, { bio: newBio, photoURL: pendingProfilePhoto });
                 updateSidebarMenuUser();
                 
@@ -695,7 +688,7 @@
         async function fetchUserProfile(username) {
             if (userCache.has(username)) return userCache.get(username);
             try {
-                const snap = await getDoc(doc(db, 'chat_data', 'unique_usernames', 'list', username));
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', username));
                 if (snap.exists()) {
                     userCache.set(username, snap.data());
                     return snap.data();
@@ -755,7 +748,7 @@
                 };
                 if (pendingGroupPhoto) payload.photoURL = pendingGroupPhoto;
                 
-                await addDoc(collection(db, 'chat_data', 'groups', 'list'), payload);
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'groups'), payload);
                 triggerAlert("Группа создана!");
                 closeTopPage();
             } catch (e) { triggerAlert("Ошибка создания группы"); }
@@ -791,9 +784,8 @@
                 const targetId = messageIdToDelete;
                 closeDeleteModal();
                 try {
-                    const collPath = currentChannelType === 'public' 
-                        ? collection(db, 'chat_data', 'global_chat', 'messages')
-                        : collection(db, 'chat_data', 'groups', 'list', currentChannelId, 'messages');
+                    // Safe collection path
+                    const collPath = collection(db, 'artifacts', appId, 'public', 'data', currentChannelId);
                     await deleteDoc(doc(collPath, targetId));
                 } catch(err) { triggerAlert("Ошибка удаления."); }
             }
@@ -807,15 +799,26 @@
             if (!UI.contextMenu.contains(e.target)) UI.contextMenu.classList.add('hidden');
         });
 
-        // --- Auth & Join ---
+        // --- Auth & Join Initialization ---
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth init failure", err);
+            }
+        };
+        initAuth();
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 if (myUsername) {
-                    await fetchUserProfile(myUsername); // Preload own profile
+                    await fetchUserProfile(myUsername); 
                     enterChat();
                 }
-            } else {
-                signInAnonymously(auth).catch(e => {});
             }
         });
 
@@ -825,7 +828,7 @@
             UI.joinBtn.disabled = true;
 
             try {
-                const nameRef = doc(db, 'chat_data', 'unique_usernames', 'list', user);
+                const nameRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user);
                 const snap = await getDoc(nameRef);
                 const currentUser = auth.currentUser;
 
@@ -852,22 +855,32 @@
                 UI.mainUI.classList.remove('opacity-0', 'translate-y-8', 'pointer-events-none');
                 UI.mainUI.classList.add('opacity-100', 'translate-y-0');
                 listenToGroups();
-                startChat('global_chat', 'Global Chat FFA', 'public');
+                startChat('global_messages', 'Global Chat FFA', 'public');
             }, 500);
         }
 
-        // --- Channels Setup ---
+        // --- Channels Setup (Memory Filtering for Rules Compliance) ---
         function listenToGroups() {
+            if (!auth.currentUser) return;
             if (groupsUnsubscribe) groupsUnsubscribe();
-            const q = query(collection(db, 'chat_data', 'groups', 'list'), where('members', 'array-contains', myUsername));
             
-            groupsUnsubscribe = onSnapshot(q, (snap) => {
-                UI.privateGroupsContainer.innerHTML = "";
+            // Note: simple collection query to adhere strictly to rules, filter in JS
+            const groupsPath = collection(db, 'artifacts', appId, 'public', 'data', 'groups');
+            
+            groupsUnsubscribe = onSnapshot(groupsPath, (snap) => {
+                const filteredGroups = [];
                 snap.forEach(d => {
                     const grp = d.data();
+                    if (grp.members && grp.members.includes(myUsername)) {
+                        filteredGroups.push({ id: d.id, ...grp });
+                    }
+                });
+
+                UI.privateGroupsContainer.innerHTML = "";
+                filteredGroups.forEach(grp => {
                     const el = document.createElement('div');
-                    el.className = `channel-item p-3 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-xl cursor-pointer transition-colors flex items-center gap-3 ${currentChannelId === d.id ? 'bg-indigo-500/10 dark:bg-indigo-500/20 border-indigo-500/20' : ''}`;
-                    el.dataset.id = d.id; el.dataset.type = 'group'; el.dataset.name = grp.name;
+                    el.className = `channel-item p-3 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-xl cursor-pointer transition-colors flex items-center gap-3 ${currentChannelId === `group_msg_${grp.id}` ? 'bg-indigo-500/10 dark:bg-indigo-500/20 border-indigo-500/20' : ''}`;
+                    el.dataset.id = `group_msg_${grp.id}`; el.dataset.type = 'group'; el.dataset.name = grp.name;
                     
                     const avatarContent = grp.photoURL 
                         ? `<div class="w-10 h-10 rounded-full flex-shrink-0 bg-cover bg-center shadow-sm" style="background-image: url(${grp.photoURL})"></div>`
@@ -881,22 +894,21 @@
                         </div>
                     `;
                     el.onclick = () => {
-                        // Switch active state UI
                         document.querySelectorAll('.channel-item').forEach(c => c.classList.remove('bg-blue-500/10', 'dark:bg-blue-500/20', 'border-blue-500/20', 'bg-indigo-500/10', 'dark:bg-indigo-500/20', 'border-indigo-500/20'));
                         el.classList.add('bg-indigo-500/10', 'dark:bg-indigo-500/20', 'border-indigo-500/20');
-                        startChat(d.id, grp.name, 'group', grp);
-                        if(window.innerWidth < 768) { UI.leftSidebar.classList.add('hidden'); } // Close sidebar on mobile
+                        startChat(`group_msg_${grp.id}`, grp.name, 'group', grp);
+                        if(window.innerWidth < 768) { UI.leftSidebar.classList.add('hidden'); } 
                     };
                     UI.privateGroupsContainer.appendChild(el);
                 });
-            });
+            }, (err) => console.error("Error fetching groups:", err));
 
             // Re-bind global chat click
-            const globalChatEl = document.querySelector('[data-id="global_chat"]');
+            const globalChatEl = document.querySelector('[data-id="global_messages"]');
             globalChatEl.onclick = () => {
                 document.querySelectorAll('.channel-item').forEach(c => c.classList.remove('bg-blue-500/10', 'dark:bg-blue-500/20', 'border-blue-500/20', 'bg-indigo-500/10', 'dark:bg-indigo-500/20', 'border-indigo-500/20'));
                 globalChatEl.classList.add('bg-blue-500/10', 'dark:bg-blue-500/20', 'border-blue-500/20');
-                startChat('global_chat', 'Global Chat FFA', 'public');
+                startChat('global_messages', 'Global Chat FFA', 'public');
                 if(window.innerWidth < 768) { UI.leftSidebar.classList.add('hidden'); }
             };
         }
@@ -938,16 +950,16 @@
             UI.chatStatus.classList.remove('hidden');
 
             if (chatUnsubscribe) chatUnsubscribe();
+            if (!auth.currentUser) return;
             
-            const collPath = type === 'public' 
-                ? collection(db, 'chat_data', 'global_chat', 'messages')
-                : collection(db, 'chat_data', 'groups', 'list', id, 'messages');
+            // Proper path structure: /artifacts/{appId}/public/data/{currentChannelId}
+            const collPath = collection(db, 'artifacts', appId, 'public', 'data', currentChannelId);
 
-            const q = query(collPath);
-            chatUnsubscribe = onSnapshot(q, (snap) => {
+            chatUnsubscribe = onSnapshot(collPath, (snap) => {
                 UI.chatStatus.classList.add('hidden');
                 let msgs = [];
                 snap.forEach(d => msgs.push({ id: d.id, ...d.data() }));
+                // In-memory sorting rule check
                 msgs.sort((a,b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
                 
                 UI.chatBox.innerHTML = "";
@@ -989,7 +1001,6 @@
             setupSwipeToReply(container, m); setupContextHandlers(container, m);
             UI.chatBox.appendChild(container);
 
-            // Lazy load avatar if not me
             if (!isMe) {
                 const profile = await fetchUserProfile(m.username);
                 if (profile && profile.photoURL) {
@@ -999,7 +1010,6 @@
             }
         }
 
-        // Global Event for profile opening
         document.addEventListener('openProfile', (e) => { openUserProfile(e.detail); });
 
         // --- Interaction Logic ---
@@ -1062,9 +1072,7 @@
             const payload = { text: val, username: myUsername, createdAt: serverTimestamp() };
             if (activeReplyTarget) { payload.replyTo = { username: activeReplyTarget.username, text: activeReplyTarget.text }; clearReplyState(); }
             
-            const collPath = currentChannelType === 'public' 
-                ? collection(db, 'chat_data', 'global_chat', 'messages')
-                : collection(db, 'chat_data', 'groups', 'list', currentChannelId, 'messages');
+            const collPath = collection(db, 'artifacts', appId, 'public', 'data', currentChannelId);
             await addDoc(collPath, payload);
         };
 
