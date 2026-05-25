@@ -9,40 +9,29 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         
-        /* Кастомный скроллбар для чата */
-        #messages::-webkit-scrollbar { width: 8px; }
-        #messages::-webkit-scrollbar-track { background: transparent; }
-        #messages::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; border: 2px solid transparent; background-clip: padding-box; }
+        /* Скроллбары */
+        #messages::-webkit-scrollbar, #participants-list::-webkit-scrollbar { width: 6px; height: 6px; }
+        #messages::-webkit-scrollbar-track, #participants-list::-webkit-scrollbar-track { background: transparent; }
+        #messages::-webkit-scrollbar-thumb, #participants-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         
         .morse-font { font-family: 'Courier New', Courier, monospace; font-weight: 700; letter-spacing: 0.1em; }
-        
-        /* Анимации */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .msg-enter { animation: fadeIn 0.3s ease-out forwards; }
-        
-        /* Фон для экрана входа */
         .login-bg { background: linear-gradient(135deg, #f0f9ff 0%, #cbebff 100%); }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 h-screen flex flex-col overflow-hidden">
 
-    <!-- Экран входа / создания комнаты -->
+    <!-- Экран входа -->
     <div id="login-screen" class="login-bg flex-grow flex items-center justify-center p-4 transition-all duration-500">
         <div class="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-white/50 w-full max-w-md relative overflow-hidden">
-            
-            <!-- Декоративные элементы -->
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20"></div>
-            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20"></div>
-
             <div class="text-center mb-8 relative z-10">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white mb-4 shadow-lg">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                 </div>
                 <h1 class="text-3xl font-bold text-gray-900">Морзе Связь</h1>
-                <p class="text-sm text-gray-500 mt-1">Тайное общение звуком</p>
             </div>
             
-            <!-- Вкладки: Вход / Создать -->
             <div class="flex mb-6 bg-gray-100/50 p-1 rounded-xl relative z-10">
                 <button id="tab-join" class="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-white text-blue-600 shadow-sm transition-all duration-300">Вход</button>
                 <button id="tab-create" class="flex-1 py-2.5 text-sm font-medium rounded-lg text-gray-500 hover:text-gray-700 transition-all duration-300">Создать</button>
@@ -53,17 +42,14 @@
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Ваше имя</label>
                     <input type="text" id="user-name" placeholder="Например, Алекс" class="w-full bg-white/50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-gray-400">
                 </div>
-
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">ID Комнаты</label>
                     <input type="text" id="room-id" placeholder="secret-room-1" class="w-full bg-white/50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-gray-400">
                 </div>
-
                 <button id="btn-action" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl py-3.5 font-semibold text-sm hover:shadow-[0_8px_20px_-6px_rgba(59,130,246,0.5)] transition-all transform active:scale-[0.98] mt-2">
                     Войти в комнату
                 </button>
             </div>
-            
             <p id="login-error" class="text-red-500 text-sm mt-4 hidden text-center bg-red-50 p-3 rounded-lg border border-red-100 relative z-10"></p>
         </div>
     </div>
@@ -71,63 +57,70 @@
     <!-- Основной интерфейс мессенджера -->
     <div id="chat-screen" class="hidden h-screen flex flex-col bg-gray-50">
         <!-- Шапка -->
-        <div class="bg-white border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row justify-between items-center z-10 relative shadow-sm">
-            <div class="flex items-center gap-4 mb-4 sm:mb-0">
-                <div class="w-12 h-12 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center text-white shadow-inner">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+        <div class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex justify-between items-center z-10 relative shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="hidden md:flex w-10 h-10 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-xl items-center justify-center text-white shadow-inner">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-gray-800">Комната: <span id="display-room-id" class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md text-lg"></span></h2>
-                    <div class="text-xs text-gray-500 mt-1 flex items-center gap-3">
-                        <label class="flex items-center gap-1 cursor-pointer" title="Частота звука">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
-                            <input type="range" id="freq-slider" min="300" max="1000" value="600" class="w-16 accent-blue-600">
+                    <h2 class="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <span id="display-room-id" class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md text-base md:text-lg"></span>
+                    </h2>
+                    <div class="text-[10px] md:text-xs text-gray-500 mt-1 flex items-center gap-3">
+                        <label class="flex items-center gap-1 cursor-pointer" title="Частота">
+                            <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                            <input type="range" id="freq-slider" min="300" max="1000" value="600" class="w-12 md:w-16 accent-blue-600">
                         </label>
                         <label class="flex items-center gap-1 cursor-pointer" title="Скорость (WPM)">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            <input type="range" id="wpm-slider" min="10" max="40" value="20" class="w-16 accent-blue-600">
+                            <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            <input type="range" id="wpm-slider" min="10" max="40" value="20" class="w-12 md:w-16 accent-blue-600">
                         </label>
                     </div>
                 </div>
             </div>
             
             <div id="controls" class="flex gap-2">
-                <button id="btn-delete" class="hidden flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <button id="btn-delete" class="hidden flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm font-medium transition-colors">
                     Удалить
                 </button>
-                <button id="btn-leave" class="flex items-center gap-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <button id="btn-leave" class="flex items-center gap-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm font-medium transition-colors">
                     Выйти
                 </button>
             </div>
         </div>
 
         <!-- Контент -->
-        <div class="flex-grow flex overflow-hidden">
-            <!-- Левая панель: Участники -->
-            <div class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex z-0 relative shadow-[4px_0_24px_-10px_rgba(0,0,0,0.05)]">
-                <div class="p-4 border-b border-gray-100">
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Участники в сети</h3>
+        <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
+            <!-- Панель участников (теперь видима всегда, адаптивная) -->
+            <div class="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col z-0 relative flex-shrink-0 transition-all shadow-sm">
+                <div class="p-2 md:p-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Участники (<span id="users-count">0</span>)
+                    </h3>
+                    <!-- Кнопка ссылки -->
+                    <button id="btn-copy-url" class="text-[10px] md:text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        Ссылка
+                    </button>
                 </div>
-                <ul id="participants-list" class="p-2 space-y-1 overflow-y-auto flex-grow">
+                <!-- Список (горизонтальный на мобильных, вертикальный на ПК) -->
+                <ul id="participants-list" class="p-2 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto space-y-0 md:space-y-1">
                     <!-- Заполняется динамически -->
                 </ul>
             </div>
 
             <!-- Центральная панель: Чат -->
-            <div class="flex-1 flex flex-col relative bg-[#f8fafc] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiNlMmU4ZjAiLz48L3N2Zz4=')]">
-                
-                <div id="messages" class="flex-grow p-6 overflow-y-auto space-y-6">
+            <div class="flex-1 flex flex-col relative bg-[#f8fafc]">
+                <div id="messages" class="flex-grow p-4 md:p-6 overflow-y-auto space-y-4 md:space-y-6">
                     <!-- Сообщения -->
                 </div>
                 
                 <!-- Поле ввода -->
-                <div class="p-4 bg-white/80 backdrop-blur border-t border-gray-200">
-                    <div class="max-w-4xl mx-auto flex items-end gap-3 bg-white border border-gray-300 rounded-3xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all">
-                        <input type="text" id="chat-input" placeholder="Введите сообщение..." autocomplete="off" class="flex-grow bg-transparent px-4 py-2 outline-none text-gray-800">
-                        <button id="btn-send" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center hover:shadow-md transition-all flex-shrink-0 active:scale-90">
-                            <svg class="w-5 h-5 translate-x-[-1px] translate-y-[1px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                <div class="p-3 md:p-4 bg-white/90 backdrop-blur border-t border-gray-200">
+                    <div class="max-w-4xl mx-auto flex items-end gap-2 bg-white border border-gray-300 rounded-3xl p-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                        <input type="text" id="chat-input" placeholder="Введите сообщение..." autocomplete="off" class="flex-grow bg-transparent px-3 py-1.5 md:py-2 outline-none text-gray-800 text-sm md:text-base">
+                        <button id="btn-send" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full w-9 h-9 md:w-10 md:h-10 flex items-center justify-center hover:shadow-md transition-all flex-shrink-0 active:scale-90">
+                            <svg class="w-4 h-4 md:w-5 md:h-5 translate-x-[-1px] translate-y-[1px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                         </button>
                     </div>
                 </div>
@@ -136,53 +129,54 @@
     </div>
 
     <script>
-        // Словарь Морзе
         const MORSE_DICT = {
             'А': '.-', 'Б': '-...', 'В': '.--', 'Г': '--.', 'Д': '-..', 'Е': '.', 'Ё': '.', 'Ж': '...-', 'З': '--..', 'И': '..', 'Й': '.---', 'К': '-.-', 'Л': '.-..', 'М': '--', 'Н': '-.', 'О': '---', 'П': '.--.', 'Р': '.-.', 'С': '...', 'Т': '-', 'У': '..-', 'Ф': '..-.', 'Х': '....', 'Ц': '-.-.', 'Ч': '---.', 'Ш': '----', 'Щ': '--.-', 'Ъ': '--.--', 'Ы': '-.--', 'Ь': '-..-', 'Э': '..-..', 'Ю': '..--', 'Я': '.-.-',
             'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..',
             '0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', ' ': ' '
         };
 
-        const WORKER_URL = "wss://morze-messenger.windowsnoutbook.workers.dev"; // <--- ПРОПИШИТЕ ВАШ URL ЗДЕСЬ
+        const WORKER_URL = "wss://morze-messenger.windowsnoutbook.workers.dev";
         let ws = null;
         let audioCtx = null;
-        let isCreatorMode = false; // Состояние вкладки
+        let isCreatorMode = false;
         let currentUser = "";
 
-        // Элементы DOM
         const screens = { login: document.getElementById('login-screen'), chat: document.getElementById('chat-screen') };
         const inputs = { name: document.getElementById('user-name'), room: document.getElementById('room-id'), chat: document.getElementById('chat-input') };
         const elements = {
-            error: document.getElementById('login-error'),
-            roomId: document.getElementById('display-room-id'),
-            participants: document.getElementById('participants-list'),
-            messages: document.getElementById('messages'),
-            btnDelete: document.getElementById('btn-delete'),
-            btnAction: document.getElementById('btn-action'),
-            tabJoin: document.getElementById('tab-join'),
-            tabCreate: document.getElementById('tab-create')
+            error: document.getElementById('login-error'), roomId: document.getElementById('display-room-id'),
+            participants: document.getElementById('participants-list'), messages: document.getElementById('messages'),
+            btnDelete: document.getElementById('btn-delete'), btnAction: document.getElementById('btn-action'),
+            tabJoin: document.getElementById('tab-join'), tabCreate: document.getElementById('tab-create'),
+            usersCount: document.getElementById('users-count')
         };
 
-        // --- Логика Вкладок (Вход / Создать) ---
+        // Загрузка сохраненных данных при старте
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const urlRoom = params.get('room');
+            const savedName = localStorage.getItem('morse_name');
+            
+            if (savedName) inputs.name.value = savedName;
+            
+            if (urlRoom) {
+                inputs.room.value = urlRoom;
+                setTab(false); // Режим входа
+            }
+        });
+
         function setTab(isCreate) {
             isCreatorMode = isCreate;
-            
             if (isCreate) {
-                // Стиль активной вкладки Создать
                 elements.tabCreate.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition-all duration-300";
                 elements.tabJoin.className = "flex-1 py-2.5 text-sm font-medium rounded-lg text-gray-500 hover:text-gray-700 transition-all duration-300";
-                
-                // Изменение кнопки
                 elements.btnAction.innerText = "Создать комнату";
-                elements.btnAction.className = "w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl py-3.5 font-semibold text-sm hover:shadow-[0_8px_20px_-6px_rgba(16,185,129,0.5)] transition-all transform active:scale-[0.98] mt-2";
+                elements.btnAction.className = "w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl py-3.5 font-semibold text-sm hover:shadow-lg transition-all transform active:scale-[0.98] mt-2";
             } else {
-                // Стиль активной вкладки Вход
                 elements.tabJoin.className = "flex-1 py-2.5 text-sm font-semibold rounded-lg bg-white text-blue-600 shadow-sm transition-all duration-300";
                 elements.tabCreate.className = "flex-1 py-2.5 text-sm font-medium rounded-lg text-gray-500 hover:text-gray-700 transition-all duration-300";
-                
-                // Изменение кнопки
                 elements.btnAction.innerText = "Войти в комнату";
-                elements.btnAction.className = "w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl py-3.5 font-semibold text-sm hover:shadow-[0_8px_20px_-6px_rgba(59,130,246,0.5)] transition-all transform active:scale-[0.98] mt-2";
+                elements.btnAction.className = "w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl py-3.5 font-semibold text-sm hover:shadow-lg transition-all transform active:scale-[0.98] mt-2";
             }
         }
 
@@ -199,16 +193,13 @@
         async function playMorse(text) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
-
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-
             const freq = document.getElementById('freq-slider').value;
             const wpm = document.getElementById('wpm-slider').value;
             
             oscillator.type = 'sine';
             oscillator.frequency.value = freq;
-            
             const dotTime = 1.2 / wpm; 
 
             oscillator.connect(gainNode);
@@ -217,16 +208,10 @@
             oscillator.start();
 
             let time = audioCtx.currentTime + 0.1;
-            const upperText = text.toUpperCase();
-
-            for (let char of upperText) {
-                if (char === ' ') {
-                    time += dotTime * 7;
-                    continue;
-                }
+            for (let char of text.toUpperCase()) {
+                if (char === ' ') { time += dotTime * 7; continue; }
                 const code = MORSE_DICT[char];
                 if (!code) continue;
-
                 for (let symbol of code) {
                     const duration = symbol === '.' ? dotTime : dotTime * 3;
                     gainNode.gain.setValueAtTime(1, time);
@@ -243,36 +228,31 @@
             const name = inputs.name.value.trim();
             const room = inputs.room.value.trim();
 
-            if (!name || !room) {
-                showError("Заполните все поля");
-                return;
-            }
-
+            if (!name || !room) { showError("Заполните все поля"); return; }
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
             currentUser = name;
             elements.error.classList.add('hidden');
 
-            const url = WORKER_URL;
-            const wsUrl = `${url.endsWith('/') ? url.slice(0, -1) : url}/room/${room}`;
+            // Сохраняем имя и обновляем URL браузера для переподключения
+            localStorage.setItem('morse_name', name);
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('room', room);
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + urlParams.toString();
+            window.history.pushState({path:newUrl}, '', newUrl);
+
+            const wsUrl = `${WORKER_URL.endsWith('/') ? WORKER_URL.slice(0, -1) : WORKER_URL}/room/${room}`;
             
             try { ws = new WebSocket(wsUrl); } 
-            catch (e) {
-                showError("Не удалось создать WebSocket подключение");
-                return;
-            }
+            catch (e) { showError("Не удалось создать подключение"); return; }
 
             ws.onopen = () => {
                 ws.send(JSON.stringify({ type: 'join', name: currentUser, isCreator: isCreatorMode }));
-                
                 screens.login.classList.add('hidden', 'opacity-0');
                 screens.chat.classList.remove('hidden');
-                
                 elements.roomId.innerText = room;
                 elements.messages.innerHTML = '';
-
-                if (isCreatorMode) elements.btnDelete.classList.remove('hidden');
-                else elements.btnDelete.classList.add('hidden');
+                elements.btnDelete.classList.toggle('hidden', !isCreatorMode);
             };
 
             ws.onmessage = (event) => {
@@ -283,34 +263,27 @@
                     playMorse(data.text);
                 }
                 else if (data.type === 'deleted') {
-                    alert(data.reason === 'timeout' ? "Комната удалена (неактивность)" : "Создатель удалил комнату.");
+                    alert(data.reason === 'timeout' ? "Комната удалена из-за долгой неактивности." : "Создатель удалил комнату.");
                     disconnect();
                 }
             };
-
             ws.onerror = () => showError("Ошибка соединения с сервером");
-            ws.onclose = () => {
-                if(!screens.chat.classList.contains('hidden')) {
-                    alert("Соединение разорвано");
-                    disconnect();
-                }
-            };
+            ws.onclose = () => { if(!screens.chat.classList.contains('hidden')) { alert("Соединение разорвано"); disconnect(); } };
         }
 
         function disconnect() {
-            if (ws) {
-                ws.send(JSON.stringify({ type: 'leave' }));
-                ws.close();
-                ws = null;
-            }
+            if (ws) { ws.send(JSON.stringify({ type: 'leave' })); ws.close(); ws = null; }
             screens.chat.classList.add('hidden');
             screens.login.classList.remove('hidden', 'opacity-0');
+            
+            // Очищаем URL при выходе
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.pushState({path:newUrl}, '', newUrl);
         }
 
         function sendMessage() {
             const text = inputs.chat.value.trim();
             if (!text || !ws) return;
-
             ws.send(JSON.stringify({ type: 'msg', text }));
             inputs.chat.value = '';
         }
@@ -318,23 +291,21 @@
         function appendMessage(name, text) {
             const isMe = name === currentUser;
             const morseTrans = textToMorse(text);
-            
             const msgDiv = document.createElement('div');
             msgDiv.className = `flex flex-col msg-enter ${isMe ? 'items-end' : 'items-start'}`;
-            
             const initials = name.substring(0, 2).toUpperCase();
             
             msgDiv.innerHTML = `
-                <div class="flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}">
-                    <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${isMe ? 'bg-indigo-400' : 'bg-blue-400'}">
+                <div class="flex items-end gap-2 max-w-[90%] md:max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}">
+                    <div class="flex-shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold text-white shadow-sm ${isMe ? 'bg-indigo-400' : 'bg-blue-400'}">
                         ${initials}
                     </div>
                     <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                        <span class="text-[11px] text-gray-400 font-medium mb-1 px-1">${name}</span>
-                        <div class="rounded-2xl px-5 py-3 shadow-sm ${isMe ? 'bg-gradient-to-br from-indigo-600 to-blue-600 text-white rounded-br-none' : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'}">
-                            <p class="text-sm md:text-base leading-relaxed">${text}</p>
-                            <div class="mt-2 pt-2 border-t ${isMe ? 'border-white/20' : 'border-gray-100'}">
-                                <p class="text-[10px] md:text-xs morse-font opacity-80 break-all">${morseTrans}</p>
+                        <span class="text-[10px] md:text-[11px] text-gray-400 font-medium mb-1 px-1">${name}</span>
+                        <div class="rounded-2xl px-4 py-2 md:px-5 md:py-3 shadow-sm ${isMe ? 'bg-gradient-to-br from-indigo-600 to-blue-600 text-white rounded-br-none' : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'}">
+                            <p class="text-sm md:text-base leading-relaxed break-words">${text}</p>
+                            <div class="mt-1.5 pt-1.5 border-t ${isMe ? 'border-white/20' : 'border-gray-100'}">
+                                <p class="text-[9px] md:text-[10px] morse-font opacity-80 break-all">${morseTrans}</p>
                             </div>
                         </div>
                     </div>
@@ -345,40 +316,56 @@
         }
 
         function renderParticipants(users) {
+            elements.usersCount.innerText = users.length;
             elements.participants.innerHTML = users.map(u => 
-                `<li class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors">
+                `<li class="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-gray-50 md:bg-transparent md:hover:bg-gray-50 transition-colors flex-shrink-0 md:flex-shrink">
                     <div class="relative">
-                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">
+                        <div class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] md:text-xs font-bold text-gray-600">
                             ${u.name.substring(0, 2).toUpperCase()}
                         </div>
                         <div class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${u.isCreator ? 'bg-amber-400' : 'bg-emerald-400'}"></div>
                     </div>
-                    <div class="flex-col">
-                        <div class="text-sm font-medium text-gray-700 leading-tight">${u.name}</div>
-                        ${u.isCreator ? '<div class="text-[10px] text-amber-600 font-semibold">Создатель</div>' : '<div class="text-[10px] text-emerald-600">Участник</div>'}
+                    <div class="flex flex-col pr-2 md:pr-0">
+                        <div class="text-xs md:text-sm font-medium text-gray-700 leading-tight whitespace-nowrap">${u.name}</div>
+                        ${u.isCreator ? '<div class="text-[9px] md:text-[10px] text-amber-600 font-semibold">Создатель</div>' : '<div class="text-[9px] md:text-[10px] text-emerald-600">Участник</div>'}
                     </div>
                 </li>`
             ).join('');
         }
 
-        function showError(msg) {
-            elements.error.innerText = msg;
-            elements.error.classList.remove('hidden');
-        }
+        function showError(msg) { elements.error.innerText = msg; elements.error.classList.remove('hidden'); }
+
+        // Копирование ссылки
+        document.getElementById('btn-copy-url').addEventListener('click', () => {
+            const url = window.location.href;
+            const btn = document.getElementById('btn-copy-url');
+            
+            try {
+                // Устаревший, но надежный метод для превью и песочниц
+                const input = document.createElement('input');
+                input.value = url;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                
+                const origHTML = btn.innerHTML;
+                btn.innerHTML = '✓ Скопировано';
+                setTimeout(() => btn.innerHTML = origHTML, 2000);
+            } catch (err) {
+                alert("Ссылка на комнату:\n" + url);
+            }
+        });
 
         elements.btnAction.addEventListener('click', connectRoom);
         document.getElementById('btn-leave').addEventListener('click', disconnect);
         
         document.getElementById('btn-delete').addEventListener('click', () => {
-            if (ws && isCreatorMode && confirm("Вы уверены, что хотите удалить комнату?")) {
-                ws.send(JSON.stringify({ type: 'delete' }));
-            }
+            if (ws && isCreatorMode && confirm("Вы уверены, что хотите удалить комнату?")) ws.send(JSON.stringify({ type: 'delete' }));
         });
 
         document.getElementById('btn-send').addEventListener('click', sendMessage);
-        inputs.chat.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
+        inputs.chat.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     </script>
 </body>
 </html>
