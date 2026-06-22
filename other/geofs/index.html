@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoFS Liveries | Jafar</title>
     <style>
-        /* Umumiy sozlamalar */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -22,7 +21,7 @@
             margin-bottom: 40px;
         }
         header h1 {
-            color: #0099CC; /* O'zbekiston bayrog'i ko'k rangi */
+            color: #0099CC;
         }
 
         /* Grid va Karta dizayni */
@@ -46,12 +45,45 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 15px rgba(0,0,0,0.15);
         }
+
+        .card-img-wrapper {
+            position: relative;
+            cursor: pointer;
+        }
         .card img {
             width: 100%;
             height: 220px;
             object-fit: cover;
             border-bottom: 1px solid #eee;
+            display: block;
+            transition: filter 0.3s ease;
         }
+        .card-img-wrapper:hover img {
+            filter: brightness(0.82);
+        }
+
+        /* SVG zoom badge */
+        .zoom-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.52);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .card-img-wrapper:hover .zoom-badge {
+            opacity: 1;
+        }
+
         .card-content {
             padding: 20px;
             display: flex;
@@ -66,7 +98,7 @@
         }
         .download-btn {
             display: block;
-            background-color: #1EB53A; /* O'zbekiston bayrog'i yashil rangi */
+            background-color: #1EB53A;
             color: white;
             text-decoration: none;
             padding: 12px;
@@ -78,6 +110,108 @@
         }
         .download-btn:hover {
             background-color: #17912d;
+        }
+
+        /* ── Lightbox ──────────────────────────────────────────── */
+        #lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.90);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
+        }
+        #lightbox.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #lightbox-img {
+            max-width: 90vw;
+            max-height: 86vh;
+            border-radius: 10px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+            object-fit: contain;
+            transform-origin: center center;
+            will-change: transform;
+            touch-action: none;
+            -webkit-user-drag: none;
+            display: block;
+            cursor: default;
+        }
+
+        /* Close button */
+        #lb-close {
+            position: fixed;
+            top: 16px;
+            right: 20px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.38);
+            background: rgba(255,255,255,0.10);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10001;
+            transition: background 0.18s ease, border-color 0.18s ease;
+        }
+        #lb-close:hover {
+            background: rgba(255,255,255,0.22);
+            border-color: rgba(255,255,255,0.7);
+        }
+
+        /* Zoom level indicator */
+        #lb-zoom-level {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.48);
+            color: rgba(255,255,255,0.85);
+            font-size: 12px;
+            font-family: monospace;
+            letter-spacing: 0.05em;
+            padding: 5px 14px;
+            border-radius: 20px;
+            pointer-events: none;
+            z-index: 10001;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #lb-zoom-level.visible {
+            opacity: 1;
+        }
+
+        /* Hint */
+        #lb-hint {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.45);
+            color: rgba(255,255,255,0.75);
+            font-size: 12px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            pointer-events: none;
+            z-index: 10001;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity 0.6s ease;
+        }
+        #lb-hint.fade {
+            opacity: 0;
         }
     </style>
 </head>
@@ -91,45 +225,315 @@
         <div id="livery-container" class="grid-container"></div>
     </main>
 
+    <!-- Lightbox -->
+    <div id="lightbox">
+        <button id="lb-close" title="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+        <img id="lightbox-img" src="" alt="">
+        <div id="lb-zoom-level">100%</div>
+        <div id="lb-hint">Scroll to zoom &nbsp;&middot;&nbsp; Double-click to reset</div>
+    </div>
+
     <script>
+    (() => {
+        // ── SVG icons ────────────────────────────────────────────────────────
+        const MAGNIFY_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <line x1="11" y1="8"  x2="11" y2="14"/>
+            <line x1="8"  y1="11" x2="14" y2="11"/>
+        </svg>`;
 
+        // ── Data ─────────────────────────────────────────────────────────────
         const liveries = [
-           
-    {
-        id: 1,
-        name: "Sukhoi Su-35 - Uzbekistan Air Force",
-        image: "https://i.ibb.co/t0KtjX6/image.png",
-        downloadLink: "https://raw.githubusercontent.com/Jafar20130315/ALTIS-gpws-sounds-for-geofs/refs/heads/main/liveries/Sukhoi-Su-35-Uzbekistan-Livery.png"
-    }, // <-- Birinchi ob'ekt yopildi va vergul qo'yildi
-    {  // <-- Ikkinchi ob'ekt ochildi
-        id: 2,
-        name: "Airbus A350 - Uzbekistan Airways (by ChinaParrot & Jafar_as)",
-        image: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/photo-at-the-airport.jpg",
-        downloadLink: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/uzbekistan-airways-a350-livery.png"
-    }, // <-- Ikkinchi ob'ekt yopildi
-            { 
-        id: 3,
-        name: "Airbus A350 - Uzbekistan Airways FIFA World Cup 2026 (by Jafar_as)",
-        image: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/uzb-airways-2026-fifa-world-cup-a350-photo.png",
-        downloadLink: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/uzbekistan-airways-a350-fifa-world-cup-2026-livery.png"
-    } 
-];
-        const container = document.getElementById('livery-container');
+            {
+                id: 1,
+                name: "Sukhoi Su-35 - Uzbekistan Air Force",
+                image: "https://i.ibb.co/t0KtjX6/image.png",
+                downloadLink: "https://raw.githubusercontent.com/Jafar20130315/ALTIS-gpws-sounds-for-geofs/refs/heads/main/liveries/Sukhoi-Su-35-Uzbekistan-Livery.png"
+            },
+            {
+                id: 2,
+                name: "Airbus A350 - Uzbekistan Airways (by ChinaParrot & Jafar_as)",
+                image: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/photo-at-the-airport.jpg",
+                downloadLink: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/uzbekistan-airways-a350-livery.png"
+            },
+            {
+                id: 3,
+                name: "Airbus A350 - Uzbekistan Airways FIFA World Cup 2026 (by Jafar_as)",
+                image: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/uzb-airways-2026-fifa-world-cup-a350-photo.png",
+                downloadLink: "https://raw.githubusercontent.com/Jafar20130315/jafaras.uz/refs/heads/main/other/geofs/uzbekistan-airways-a350-fifa-world-cup-2026-livery.png"
+            }
+        ];
 
+        // ── Build cards ──────────────────────────────────────────────────────
+        const container = document.getElementById('livery-container');
         liveries.forEach(livery => {
             const card = document.createElement('div');
             card.className = 'card';
-
             card.innerHTML = `
-                <img src="${livery.image}" alt="${livery.name}">
+                <div class="card-img-wrapper" data-src="${livery.image}">
+                    <img src="${livery.image}" alt="${livery.name}">
+                    <div class="zoom-badge">${MAGNIFY_SVG}</div>
+                </div>
                 <div class="card-content">
                     <h2 class="card-title">${livery.name}</h2>
                     <a href="${livery.downloadLink}" class="download-btn" download target="_blank">Download</a>
                 </div>
             `;
-
             container.appendChild(card);
         });
+
+        // ── Elements ─────────────────────────────────────────────────────────
+        const lightbox  = document.getElementById('lightbox');
+        const img       = document.getElementById('lightbox-img');
+        const closeBtn  = document.getElementById('lb-close');
+        const zoomLabel = document.getElementById('lb-zoom-level');
+        const hint      = document.getElementById('lb-hint');
+
+        // ── Config ───────────────────────────────────────────────────────────
+        const MIN_SCALE  = 1;
+        const MAX_SCALE  = 6;
+        const WHEEL_STEP = 0.12;   // 12% per notch
+
+        // ── Transform state ──────────────────────────────────────────────────
+        let scale = 1, tx = 0, ty = 0;
+
+        // ── Interaction flags ────────────────────────────────────────────────
+        let isDragging    = false;
+        let dragAnchorX   = 0, dragAnchorY = 0;
+        let didDrag       = false;          // suppress background-click after drag
+
+        let isPinching    = false;
+        let isTouchPan    = false;
+        let pinchLastDist = 0;
+        let pinchLastMidX = 0, pinchLastMidY = 0;
+        let panLastX      = 0, panLastY      = 0;
+
+        let hintTimer  = null;
+        let labelTimer = null;
+
+        // ── Helpers ──────────────────────────────────────────────────────────
+        const vcx = () => window.innerWidth  / 2;
+        const vcy = () => window.innerHeight / 2;
+
+        function commit() {
+            img.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+            img.style.cursor    = isDragging ? 'grabbing' : (scale > 1 ? 'grab' : 'default');
+        }
+
+        function updateLabel() {
+            const pct = Math.round(scale * 100) + '%';
+            zoomLabel.textContent = pct;
+            zoomLabel.classList.toggle('visible', scale !== 1);
+            // auto-hide after 1.6 s of no activity
+            clearTimeout(labelTimer);
+            if (scale !== 1) {
+                labelTimer = setTimeout(() => zoomLabel.classList.remove('visible'), 1600);
+            }
+        }
+
+        function smoothReset() {
+            img.style.transition = 'transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94)';
+            scale = 1; tx = 0; ty = 0;
+            commit();
+            updateLabel();
+            requestAnimationFrame(() => {
+                setTimeout(() => { img.style.transition = 'none'; }, 230);
+            });
+        }
+
+        // Core zoom primitive — zoom toward (clientX, clientY) by given factor.
+        // Math: keep image point under cursor fixed in screen space.
+        //   Before: screen_x = vcx + tx + imgX * scale
+        //   After:  screen_x = vcx + tx2 + imgX * scale2
+        //   Constraint: imgX constant → tx2 = (clientX - vcx) - (clientX - vcx - tx) * (scale2/scale)
+        function zoomAt(clientX, clientY, factor) {
+            const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * factor));
+            if (newScale === scale) return;
+            const mx    = clientX - vcx();
+            const my    = clientY - vcy();
+            const ratio = newScale / scale;
+            tx    = mx - ratio * (mx - tx);
+            ty    = my - ratio * (my - ty);
+            scale = newScale;
+            img.style.transition = 'none';
+            commit();
+            updateLabel();
+        }
+
+        // Pinch frame: simultaneously scale + pan.
+        // Invariant: image point under prevMid must end up at currMid.
+        //   tx2 = (currMid - vcx) - ratio * ((prevMid - vcx) - tx)
+        function pinchFrame(prevDist, currDist, prevMX, prevMY, currMX, currMY) {
+            const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * (currDist / prevDist)));
+            const ratio    = newScale / scale;
+            const pm       = { x: prevMX - vcx(), y: prevMY - vcy() };
+            const cm       = { x: currMX - vcx(), y: currMY - vcy() };
+            tx    = cm.x - ratio * (pm.x - tx);
+            ty    = cm.y - ratio * (pm.y - ty);
+            scale = newScale;
+            img.style.transition = 'none';
+            commit();
+            updateLabel();
+        }
+
+        function touchDist(t) {
+            const dx = t[0].clientX - t[1].clientX;
+            const dy = t[0].clientY - t[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        function touchMid(t) {
+            return {
+                x: (t[0].clientX + t[1].clientX) / 2,
+                y: (t[0].clientY + t[1].clientY) / 2
+            };
+        }
+
+        // ── Open / close ─────────────────────────────────────────────────────
+        function openLightbox(src) {
+            img.src = src;
+            scale = 1; tx = 0; ty = 0;
+            img.style.transition = 'none';
+            commit();
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            // Show hint, fade after 2.4 s
+            hint.classList.remove('fade');
+            clearTimeout(hintTimer);
+            hintTimer = setTimeout(() => hint.classList.add('fade'), 2400);
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+            setTimeout(() => { img.src = ''; scale = 1; tx = 0; ty = 0; }, 240);
+        }
+
+        // ── Card click → open ────────────────────────────────────────────────
+        document.addEventListener('click', e => {
+            const w = e.target.closest('.card-img-wrapper');
+            if (w) openLightbox(w.dataset.src);
+        });
+
+        // ── Close via button / Escape / background click ──────────────────────
+        closeBtn.addEventListener('click', closeLightbox);
+
+        document.addEventListener('keydown', e => {
+            if (!lightbox.classList.contains('active')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === '0')      smoothReset();
+        });
+
+        lightbox.addEventListener('click', e => {
+            // Only close when clicking the dark backdrop, not the image
+            if (e.target === lightbox && !didDrag) closeLightbox();
+        });
+
+        // ── Mouse wheel zoom ─────────────────────────────────────────────────
+        lightbox.addEventListener('wheel', e => {
+            e.preventDefault();
+            const factor = e.deltaY < 0 ? (1 + WHEEL_STEP) : 1 / (1 + WHEEL_STEP);
+            zoomAt(e.clientX, e.clientY, factor);
+        }, { passive: false });
+
+        // ── Mouse drag (pan) ─────────────────────────────────────────────────
+        img.addEventListener('mousedown', e => {
+            e.preventDefault();
+            isDragging  = true;
+            didDrag     = false;
+            dragAnchorX = e.clientX - tx;
+            dragAnchorY = e.clientY - ty;
+            commit();
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            const nx = e.clientX - dragAnchorX;
+            const ny = e.clientY - dragAnchorY;
+            if (Math.abs(nx - tx) > 2 || Math.abs(ny - ty) > 2) didDrag = true;
+            tx = nx; ty = ny;
+            commit();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            commit();
+            // Clear didDrag after event bubbling finishes
+            setTimeout(() => { didDrag = false; }, 0);
+        });
+
+        // Double-click: zoom in at cursor, or reset if already zoomed
+        img.addEventListener('dblclick', e => {
+            e.stopPropagation();
+            if (scale > 1) smoothReset();
+            else           zoomAt(e.clientX, e.clientY, 2.5);
+        });
+
+        // ── Touch: pinch-to-zoom + one-finger pan ────────────────────────────
+        img.addEventListener('touchstart', e => {
+            e.preventDefault();
+            const t = e.touches;
+            if (t.length === 1) {
+                isPinching  = false;
+                isTouchPan  = true;
+                panLastX    = t[0].clientX;
+                panLastY    = t[0].clientY;
+                didDrag     = false;
+            } else if (t.length >= 2) {
+                isTouchPan    = false;
+                isPinching    = true;
+                pinchLastDist = touchDist(t);
+                const m       = touchMid(t);
+                pinchLastMidX = m.x;
+                pinchLastMidY = m.y;
+            }
+        }, { passive: false });
+
+        img.addEventListener('touchmove', e => {
+            e.preventDefault();
+            const t = e.touches;
+            if (isPinching && t.length >= 2) {
+                const d = touchDist(t);
+                const m = touchMid(t);
+                pinchFrame(pinchLastDist, d, pinchLastMidX, pinchLastMidY, m.x, m.y);
+                pinchLastDist = d;
+                pinchLastMidX = m.x;
+                pinchLastMidY = m.y;
+            } else if (isTouchPan && t.length === 1) {
+                const dx = t[0].clientX - panLastX;
+                const dy = t[0].clientY - panLastY;
+                if (Math.abs(dx) > 1 || Math.abs(dy) > 1) didDrag = true;
+                tx += dx; ty += dy;
+                panLastX = t[0].clientX;
+                panLastY = t[0].clientY;
+                img.style.transition = 'none';
+                commit();
+            }
+        }, { passive: false });
+
+        img.addEventListener('touchend', e => {
+            if (e.touches.length < 2) isPinching = false;
+            if (e.touches.length === 0) {
+                isTouchPan = false;
+                // Snap back if somehow undershot minimum
+                if (scale < MIN_SCALE) smoothReset();
+            }
+        });
+
+        // Suppress context menu on long-press mobile
+        img.addEventListener('contextmenu', e => e.preventDefault());
+
+    })();
     </script>
 
 </body>
