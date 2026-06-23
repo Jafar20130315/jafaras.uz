@@ -1,55 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://sitemaps.org"
-        xmlns:image="http://google.com">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
-  <!-- Главная страница и привязанные к ней изображения -->
   <url>
-    <loc>https://geofs.jafaras.uz</loc>
+    <loc>https://geofs.jafaras.uz/</loc>
     <lastmod>2026-06-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-
-    <!-- Изображение 1: A380 Узбекистан Милиция -->
     <image:image>
       <image:loc>https://geofs.jafaras.uz/a380-uzbekistan-police.jpg</image:loc>
-      <image:title>A380 Uzbekistan Police Livery</image:title>
+      <image:title>A380 Uzbekistan Police</image:title>
     </image:image>
-
-    <!-- Изображение 2: Фото в аэропорту -->
     <image:image>
       <image:loc>https://geofs.jafaras.uz/photo-at-the-airport.jpg</image:loc>
       <image:title>Photo at the Airport</image:title>
     </image:image>
-
-    <!-- Изображение 3: Фото A350 FIFA World Cup 2026 -->
     <image:image>
       <image:loc>https://geofs.jafaras.uz/uzb-airways-2026-fifa-world-cup-a350-photo.png</image:loc>
-      <image:title>Uzbekistan Airways A350 FIFA World Cup 2026 Photo</image:title>
+      <image:title>Uzbekistan Airways 2026 FIFA World Cup A350 Photo</image:title>
     </image:image>
-
-    <!-- Изображение 4: Ливрея A350 FIFA World Cup 2026 -->
     <image:image>
       <image:loc>https://geofs.jafaras.uz/uzbekistan-airways-a350-fifa-world-cup-2026-livery.png</image:loc>
       <image:title>Uzbekistan Airways A350 FIFA World Cup 2026 Livery</image:title>
     </image:image>
-
-    <!-- Изображение 5: Обычная ливрея Uzbekistan Airways A350 -->
     <image:image>
       <image:loc>https://geofs.jafaras.uz/uzbekistan-airways-a350-livery.png</image:loc>
       <image:title>Uzbekistan Airways A350 Livery</image:title>
     </image:image>
-
-    <!-- Изображение 6: Ливрея A380 МВД Узбекистана -->
     <image:image>
       <image:loc>https://geofs.jafaras.uz/uzbekistan-iib-a380-livery.jpg</image:loc>
       <image:title>Uzbekistan IIB A380 Livery</image:title>
     </image:image>
-
-    <!-- Изображение 7: Фото МВД Узбекистана -->
     <image:image>
       <image:loc>https://geofs.jafaras.uz/uzbekistan-iib-photo.png</image:loc>
       <image:title>Uzbekistan IIB Photo</image:title>
     </image:image>
-
   </url>
+
 </urlset>
