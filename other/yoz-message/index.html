@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/favicon.png">
 <title>YOZ—MESSAGE™</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Noto+Serif:ital,wght@0,400;0,600;1,400&family=Noto+Serif+Arabic:wght@400;600&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Serif+Hebrew:wght@400;600&family=Noto+Serif+SC:wght@400;600&family=Noto+Serif+JP:wght@400;600&family=Noto+Serif+KR:wght@400;600&family=Noto+Serif+Armenian:wght@400;600&family=Noto+Serif+Georgian:wght@400;600&family=Noto+Serif+Devanagari:wght@400;600&family=Noto+Serif+Thai:wght@400;600&display=swap');
@@ -383,11 +385,37 @@ input[type="file"]{ display:none; }
   .console{ flex-direction: column; gap: 18px; }
   .lever{ width: 180px; }
 }
+  .logo {
+  position: fixed;
+  top: 22px;
+  left: 22px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity .25s ease, transform .25s ease;
+}
+
+.logo:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.logo img {
+  height: 32px;          /* регулируй размер */
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
 </style>
 </head>
 <body>
 <div class="stage">
-
+<a href="https://jafaras.uz" class="logo" title="jafaras.uz">
+  <img src="/logo.png" alt="YOZ">
+</a>
   <!-- START SCREEN -->
   <div id="screen-start">
     <div class="masthead">
