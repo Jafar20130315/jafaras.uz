@@ -98,30 +98,40 @@ body{
   display:flex; align-items:center; justify-content:center;
   animation: spin 44s linear infinite;
 }
-.wheel::before{ content:""; position:absolute; inset: 8px; border-radius:50%; border: 1.5px dashed rgba(20,24,32,0.4); }
-.wheel span{ font-family:'Special Elite', monospace; font-size: 19px; letter-spacing: 2px; color: #23180a; animation: counterspin 44s linear infinite; }
+.wheel::before{
+  content:""; position:absolute; inset: 8px; border-radius:50%;
+  border: 1.5px dashed rgba(20,24,32,0.4);
+}
+.wheel span{
+  font-family:'Special Elite', monospace;
+  font-size: 19px;
+  letter-spacing: 2px;
+  color: #23180a;
+  animation: counterspin 44s linear infinite;   /* ← вот это важно */
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes counterspin { to { transform: rotate(-360deg); } }
 
-.desk-note{ font-family:'Cormorant Garamond', serif; font-style: italic; font-size: 14px; color: var(--text-soft); text-align:center; }
+.desk-note{
+  font-family:'Cormorant Garamond', serif; font-style: italic;
+  font-size: 14px; color: var(--text-soft); letter-spacing: .5px;
+}
 
 /* ================= DRAWERS ================= */
 .drawer{
-  position:absolute; inset:0;
-  background: var(--bg-vignette);
-  display:flex; flex-direction:column; align-items:center;
+  position:absolute; top:0; bottom:0; width:100%;
+  background: var(--bg);
+  padding: 28px 20px 40px;
   overflow-y:auto;
-  padding: 28px 20px 60px;
-  transition: transform .45s cubic-bezier(.22,.9,.32,1);
-  pointer-events:none;
+  transition: transform .45s cubic-bezier(.22,1,.36,1);
+  z-index: 10;
 }
-.drawer.open{ pointer-events:auto; }
-#drawer-encode{ transform: translateX(-100%); }
+#drawer-encode{ transform: translateX(-100%); left:0; }
 #drawer-encode.open{ transform: translateX(0); }
-#drawer-decode{ transform: translateX(100%); }
+#drawer-decode{ transform: translateX(100%); right:0; }
 #drawer-decode.open{ transform: translateX(0); }
 
-.drawer-inner{ width:100%; max-width: 640px; }
+.drawer-inner{ width:100%; max-width: 640px; margin:0 auto; }
 
 .drawer-top{
   display:flex; align-items:center; gap: 14px;
@@ -148,17 +158,18 @@ body{
 }
 .step-label .num{ color: var(--brass-light); }
 
-textarea{
-  width:100%; min-height: 130px; resize: vertical;
+textarea, input[type="password"], input[type="text"]{
+  width:100%; 
   background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
   padding: 16px; font-size: 16px; line-height: 1.75; color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
 }
-textarea:focus{ outline: none; border-color: var(--patina); }
+textarea{ min-height: 130px; resize: vertical; }
+textarea:focus, input:focus{ outline: none; border-color: var(--patina); }
 textarea[readonly]{ background: var(--panel-2); color: var(--text); }
 
 #in-code, #out-code{ font-family: 'IBM Plex Mono', monospace; font-size: 14px; line-height: 1.6; }
 
-/* result blocks: do not exist until revealed */
 .result-step{
   display: none;
   opacity: 0;
@@ -172,7 +183,6 @@ textarea[readonly]{ background: var(--panel-2); color: var(--text); }
   to{ opacity:1; transform: translateY(0); }
 }
 
-/* explicit action buttons (translate / read) */
 .primary-row{ display:flex; justify-content:center; margin: 14px 0 2px; }
 .primary-btn{
   font-family:'IBM Plex Mono', monospace; font-weight:700; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
@@ -194,22 +204,15 @@ button.action, label.action{
 button.action:hover, label.action:hover{ border-color: var(--brass-light); color: var(--brass-light); }
 button.action:active{ transform: scale(0.97); }
 
-input[type="text"].fname{
-  font-family:'IBM Plex Mono', monospace; font-size: 13px; padding: 10px 12px;
-  border: 1px solid var(--line); border-radius: 3px; background: var(--panel); color: var(--text); min-width: 170px;
-}
-.ext{ font-family:'IBM Plex Mono', monospace; font-size: 13px; color: var(--text-soft); font-weight:600; }
-
-/* ---- grouped filename field (input + extension read as one thing) ---- */
 .file-field{
   display:flex; align-items:stretch;
   border: 1px solid var(--line); border-radius: 3px;
   background: var(--panel); overflow:hidden; flex:1; min-width: 200px;
 }
 .file-field input.fname{
-  border: none; border-radius: 0; min-width: 0; flex:1; background: transparent;
+  border: none; border-radius: 0; min-width: 0; flex:1; background: transparent; padding: 10px 12px;
 }
-.file-field .ext{ display:flex; align-items:center; padding-right: 12px; }
+.file-field .ext{ display:flex; align-items:center; padding-right: 12px; color: var(--text-soft); font-size:13px; }
 
 .action-group{ margin-top: 4px; }
 .action-group + .action-group{ margin-top: 18px; }
@@ -217,12 +220,9 @@ input[type="text"].fname{
   font-family:'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 1.3px; text-transform: uppercase;
   color: var(--text-soft); margin-bottom: 8px;
 }
-.row-file{ align-items:stretch; }
-.row-file .action{ flex:none; }
 
 input[type="file"]{ display:none; }
 
-/* ---- upload window (dropzone) ---- */
 .dropzone{
   width:100%;
   border: 1.5px dashed var(--line);
@@ -253,30 +253,32 @@ input[type="file"]{ display:none; }
 .status{ font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--warn); font-weight:600; letter-spacing: .3px; min-height: 16px; margin-top: 8px; }
 .status.ok{ color: var(--patina-light); }
 
-@media (prefers-reduced-motion: reduce){ .wheel, .wheel span { animation: none; } #screen-start, .drawer, .result-step { transition: none; animation: none; } }
-@media (max-width: 520px){ .console{ gap: 14px; } .lever{ width: 116px; padding: 16px 10px; } }
+@media (max-width: 600px){
+  .console{ flex-direction: column; gap: 18px; }
+  .lever{ width: 180px; }
+}
 </style>
 </head>
 <body>
-
 <div class="stage">
 
+  <!-- START SCREEN -->
   <div id="screen-start">
     <div class="masthead">
-      <h1>YOZ<span class="em">—</span>MESSAGE</h1>
-      <p>Личный шифр на числовом алфавите. Любой язык — превращается в код, который читает только тот, у кого есть эта страница.</p>
+      <h1>YOZ<span class="em">—</span>MESSAGE™</h1>
+      <p>Личный шифр. Сообщение читает только тот, кто знает пароль.</p>
     </div>
 
     <div class="console">
-      <button class="lever" onclick="openDrawer('encode')" aria-label="Открыть: написать секрет">
+      <button class="lever" onclick="openDrawer('encode')">
         <span class="glyph">✎</span>
         <span class="word">Написать</span>
         <span class="sub">спрятать сообщение в код</span>
       </button>
 
-      <div class="wheel" aria-hidden="true"><span>YOZ</span></div>
+      <div class="wheel"><span>YOZ</span></div>
 
-      <button class="lever" onclick="openDrawer('decode')" aria-label="Открыть: прочитать секрет">
+      <button class="lever" onclick="openDrawer('decode')">
         <span class="glyph">⚿</span>
         <span class="word">Прочитать</span>
         <span class="sub">достать сообщение из кода</span>
@@ -286,7 +288,7 @@ input[type="file"]{ display:none; }
     <p class="desk-note">2026 jafaras.uz</p>
   </div>
 
-  <!-- DRAWER 1: encode -->
+  <!-- DRAWER ENCODE -->
   <div class="drawer" id="drawer-encode">
     <div class="drawer-inner">
       <div class="drawer-top">
@@ -297,16 +299,21 @@ input[type="file"]{ display:none; }
 
       <div class="step">
         <div class="step-label"><span class="num">01</span> Ваше сообщение</div>
-        <textarea id="in-text" placeholder="Напишите здесь что угодно — на русском, английском, узбекском, немецком, арабском…"></textarea>
+        <textarea id="in-text" placeholder="Напишите здесь что угодно — на русском, английском, узбекском…"></textarea>
+      </div>
+
+      <div class="step">
+        <div class="step-label"><span class="num">02</span> Пароль (который знаете только вы вдвоём)</div>
+        <input type="password" id="pass-encode" placeholder="Например: день рождения, кличка, любимая фраза">
+        <div class="hint">Не отправляйте этот пароль в том же чате, где лежит код</div>
       </div>
 
       <div class="primary-row">
         <button class="primary-btn" onclick="doTranslate()"><span>Перевести</span><span class="arrow">↓</span></button>
       </div>
 
-      <!-- result: does not exist until "Перевести" is pressed -->
       <div class="step result-step" id="step-out-encode">
-        <div class="step-label"><span class="num">02</span> Код YOZ</div>
+        <div class="step-label"><span class="num">03</span> Код YOZ</div>
         <textarea id="out-code" readonly></textarea>
 
         <div class="action-group">
@@ -328,12 +335,11 @@ input[type="file"]{ display:none; }
         </div>
 
         <div class="status" id="status-encode"></div>
-        <p class="hint">Формат: каждая буква — число, между буквами один пробел, между словами — два пробела.</p>
       </div>
     </div>
   </div>
 
-  <!-- DRAWER 2: decode -->
+  <!-- DRAWER DECODE -->
   <div class="drawer" id="drawer-decode">
     <div class="drawer-inner">
       <div class="drawer-top">
@@ -344,27 +350,29 @@ input[type="file"]{ display:none; }
 
       <div class="step">
         <div class="step-label"><span class="num">01</span> Код YOZ</div>
-
-        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Загрузить файл .yoz">
-          <div class="dz-icon">⇪</div>
-          <div class="dz-main">Перетащите файл .yoz сюда или нажмите, чтобы выбрать</div>
-          <div class="dz-sub">файл откроется прямо здесь, никуда не отправляется</div>
+        <div class="dropzone" id="dropzone" tabindex="0">
+          <div class="dz-icon">📁</div>
+          <div class="dz-main">Перетащите файл .yoz сюда</div>
+          <div class="dz-sub">или нажмите, чтобы выбрать</div>
           <div class="dz-file" id="file-name"></div>
         </div>
-        <input type="file" id="file-upload" accept=".yoz,.txt" onchange="loadFile(event)">
+        <input type="file" id="file-upload" accept=".yoz,text/plain">
 
         <div class="divider-or">или вставьте код вручную</div>
+        <textarea id="in-code" placeholder="Вставьте код сюда..."></textarea>
+      </div>
 
-        <textarea id="in-code" placeholder="Вставьте код сюда…"></textarea>
+      <div class="step">
+        <div class="step-label"><span class="num">02</span> Пароль</div>
+        <input type="password" id="pass-decode" placeholder="Тот же пароль, что использовал отправитель">
       </div>
 
       <div class="primary-row">
         <button class="primary-btn" onclick="doDecode()"><span>Прочитать</span><span class="arrow">↓</span></button>
       </div>
 
-      <!-- result: does not exist until "Прочитать" is pressed -->
       <div class="step result-step" id="step-out-decode">
-        <div class="step-label"><span class="num">02</span> Расшифрованное сообщение</div>
+        <div class="step-label"><span class="num">03</span> Расшифрованное сообщение</div>
         <textarea id="out-text" readonly></textarea>
         <div class="row">
           <button class="action" onclick="copyText('out-text','status-decode')">Скопировать текст</button>
@@ -377,6 +385,9 @@ input[type="file"]{ display:none; }
 </div>
 
 <script>
+// ---------- НАСТРОЙКИ ----------
+const WORKER_URL = "https://api.yoz.jafaras.uz";
+
 // ---------- NAVIGATION ----------
 const screenStart = document.getElementById('screen-start');
 const drawerEncode = document.getElementById('drawer-encode');
@@ -394,21 +405,20 @@ function closeDrawers(){
 }
 
 // ---------- SCRIPT-AWARE TYPEFACES ----------
-// Каждый алфавит получает шрифт, спроектированный именно под него.
 const SCRIPT_FONTS = [
-  { re: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/, font: "'Noto Naskh Arabic', serif" },   // арабский
-  { re: /[\u0590-\u05FF]/, font: "'Noto Serif Hebrew', serif" },                              // иврит
-  { re: /[\u4E00-\u9FFF]/, font: "'Noto Serif SC', serif" },                                  // китайский
-  { re: /[\u3040-\u30FF]/, font: "'Noto Serif JP', serif" },                                  // японский
-  { re: /[\uAC00-\uD7AF]/, font: "'Noto Serif KR', serif" },                                  // корейский
-  { re: /[\u0E00-\u0E7F]/, font: "'Noto Serif Thai', serif" },                                // тайский
-  { re: /[\u0900-\u097F]/, font: "'Noto Serif Devanagari', serif" },                          // деванагари
-  { re: /[\u0530-\u058F]/, font: "'Noto Serif Armenian', serif" },                            // армянский
-  { re: /[\u10A0-\u10FF]/, font: "'Noto Serif Georgian', serif" },                            // грузинский
-  { re: /[\u0400-\u04FF]/, font: "'Noto Serif', serif" },                                     // кириллица (рус/узб-кир и др.)
-  { re: /[\u0370-\u03FF]/, font: "'Noto Serif', serif" },                                     // греческий
+  { re: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/, font: "'Noto Naskh Arabic', serif" },
+  { re: /[\u0590-\u05FF]/, font: "'Noto Serif Hebrew', serif" },
+  { re: /[\u4E00-\u9FFF]/, font: "'Noto Serif SC', serif" },
+  { re: /[\u3040-\u30FF]/, font: "'Noto Serif JP', serif" },
+  { re: /[\uAC00-\uD7AF]/, font: "'Noto Serif KR', serif" },
+  { re: /[\u0E00-\u0E7F]/, font: "'Noto Serif Thai', serif" },
+  { re: /[\u0900-\u097F]/, font: "'Noto Serif Devanagari', serif" },
+  { re: /[\u0530-\u058F]/, font: "'Noto Serif Armenian', serif" },
+  { re: /[\u10A0-\u10FF]/, font: "'Noto Serif Georgian', serif" },
+  { re: /[\u0400-\u04FF]/, font: "'Noto Serif', serif" },
+  { re: /[\u0370-\u03FF]/, font: "'Noto Serif', serif" },
 ];
-const DEFAULT_FONT = "'Source Serif 4', serif"; // латиница: англ, нем, узб-латиница и т.д.
+const DEFAULT_FONT = "'Source Serif 4', serif";
 
 function fontForText(text){
   for(const rule of SCRIPT_FONTS){
@@ -421,33 +431,19 @@ function applyScriptFont(el){
   el.style.fontFamily = fontForText(el.value) || DEFAULT_FONT;
 }
 
-// ---------- CORE CIPHER ----------
-function encodeToYoz(text){
-  const words = text.split(/\s+/).filter(w => w.length > 0);
-  const encodedWords = words.map(word => {
-    const chars = Array.from(word);
-    return chars.map(ch => ch.codePointAt(0)).join(' ');
+// ---------- WORKER CALL ----------
+async function callWorker(action, text, password) {
+  const res = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, text, password })
   });
-  return encodedWords.join('  ');
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.result;
 }
 
-function decodeFromYoz(code){
-  const trimmed = code.trim();
-  if(!trimmed) return '';
-  const wordChunks = trimmed.split(/ {2,}/);
-  const words = wordChunks.map(chunk => {
-    return chunk.trim().split(/ +/)
-      .filter(tok => tok.length > 0)
-      .map(tok => {
-        const n = parseInt(tok, 10);
-        if(isNaN(n)) return '';
-        try { return String.fromCodePoint(n); } catch(e){ return ''; }
-      }).join('');
-  });
-  return words.join(' ');
-}
-
-// ---------- ENCODE DRAWER ----------
+// ---------- ENCODE ----------
 const inText = document.getElementById('in-text');
 const outCode = document.getElementById('out-code');
 const statusEncode = document.getElementById('status-encode');
@@ -456,18 +452,39 @@ const stepOutEncode = document.getElementById('step-out-encode');
 inText.style.fontFamily = DEFAULT_FONT;
 inText.addEventListener('input', () => applyScriptFont(inText));
 
-function doTranslate(){
-  if(!inText.value.trim()){
+async function doTranslate(){
+  const text = inText.value.trim();
+  const password = document.getElementById('pass-encode').value.trim();
+
+  if(!text){
     statusEncode.className = 'status';
-    statusEncode.textContent = 'Сначала напишите сообщение выше.';
+    statusEncode.textContent = 'Сначала напишите сообщение.';
     return;
   }
-  outCode.value = encodeToYoz(inText.value);
-  stepOutEncode.classList.remove('revealed');
-  void stepOutEncode.offsetWidth; // перезапуск анимации появления
-  stepOutEncode.classList.add('revealed');
-  statusEncode.className = 'status ok';
-  statusEncode.textContent = 'Готово. Код собран.';
+  if(!password){
+    statusEncode.className = 'status';
+    statusEncode.textContent = 'Введите пароль.';
+    return;
+  }
+
+  const sure = confirm('Вы уверены, что ваш собеседник знает этот пароль?\n\nЕсли нет — он не сможет прочитать сообщение.');
+  if(!sure) return;
+
+  statusEncode.className = 'status';
+  statusEncode.textContent = 'Шифрую...';
+
+  try {
+    const result = await callWorker('encode', text, password);
+    outCode.value = result;
+    stepOutEncode.classList.remove('revealed');
+    void stepOutEncode.offsetWidth;
+    stepOutEncode.classList.add('revealed');
+    statusEncode.className = 'status ok';
+    statusEncode.textContent = 'Готово. Код защищён паролем.';
+  } catch(e) {
+    statusEncode.className = 'status';
+    statusEncode.textContent = 'Ошибка: ' + e.message;
+  }
 }
 
 function downloadYoz(){
@@ -491,7 +508,7 @@ function downloadYoz(){
   statusEncode.textContent = 'Файл сохранён: ' + a.download;
 }
 
-// ---------- DECODE DRAWER ----------
+// ---------- DECODE ----------
 const inCode = document.getElementById('in-code');
 const outText = document.getElementById('out-text');
 const statusDecode = document.getElementById('status-decode');
@@ -500,20 +517,37 @@ const fileNameLabel = document.getElementById('file-name');
 const dropzone = document.getElementById('dropzone');
 const fileUpload = document.getElementById('file-upload');
 
-function doDecode(){
-  if(!inCode.value.trim()){
+async function doDecode(){
+  const code = inCode.value.trim();
+  const password = document.getElementById('pass-decode').value.trim();
+
+  if(!code){
     statusDecode.className = 'status';
     statusDecode.textContent = 'Сначала вставьте код или загрузите файл.';
     return;
   }
-  const result = decodeFromYoz(inCode.value);
-  outText.value = result;
-  outText.style.fontFamily = fontForText(result);
-  stepOutDecode.classList.remove('revealed');
-  void stepOutDecode.offsetWidth;
-  stepOutDecode.classList.add('revealed');
-  statusDecode.className = 'status ok';
-  statusDecode.textContent = 'Готово. Сообщение расшифровано.';
+  if(!password){
+    statusDecode.className = 'status';
+    statusDecode.textContent = 'Введите пароль.';
+    return;
+  }
+
+  statusDecode.className = 'status';
+  statusDecode.textContent = 'Расшифровываю...';
+
+  try {
+    const result = await callWorker('decode', code, password);
+    outText.value = result;
+    outText.style.fontFamily = fontForText(result);
+    stepOutDecode.classList.remove('revealed');
+    void stepOutDecode.offsetWidth;
+    stepOutDecode.classList.add('revealed');
+    statusDecode.className = 'status ok';
+    statusDecode.textContent = 'Готово. Сообщение расшифровано.';
+  } catch(e) {
+    statusDecode.className = 'status';
+    statusDecode.textContent = e.message;
+  }
 }
 
 function readFile(file){
@@ -531,11 +565,10 @@ function readFile(file){
   reader.readAsText(file, 'utf-8');
 }
 
-function loadFile(evt){
-  const file = evt.target.files[0];
-  if(!file) return;
-  readFile(file);
-}
+fileUpload.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(file) readFile(file);
+});
 
 dropzone.addEventListener('click', () => fileUpload.click());
 dropzone.addEventListener('keydown', (e) => {
@@ -554,7 +587,7 @@ dropzone.addEventListener('drop', (e) => {
   if(file) readFile(file);
 });
 
-// ---------- COPY HELPER ----------
+// ---------- COPY ----------
 function copyText(id, statusId){
   const el = document.getElementById(id);
   const target = document.getElementById(statusId);
