@@ -80,13 +80,30 @@ body{
   cursor: pointer;
   text-align:center;
   color: var(--text);
-  transition: border-color .18s ease, background .18s ease, transform .12s ease;
+  transition: all .25s cubic-bezier(.22,1,.36,1);
   display:flex; flex-direction:column; align-items:center; gap: 10px;
+  position: relative;
+  overflow: hidden;
 }
-.lever:hover{ border-color: var(--brass-light); background: var(--panel-2); }
-.lever:active{ transform: scale(0.96); }
+.lever::before{
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(171,135,82,0.08), transparent 60%);
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.lever:hover{
+  border-color: var(--brass-light);
+  background: var(--panel-2);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(171,135,82,0.15);
+}
+.lever:hover::before{ opacity: 1; }
+.lever:active{ transform: translateY(-1px) scale(0.98); }
 .lever:focus-visible{ outline: 2px solid var(--patina-light); outline-offset: 3px; }
-.lever .glyph{ font-size: 24px; color: var(--brass-light); }
+.lever .glyph{ font-size: 24px; color: var(--brass-light); transition: transform .25s ease, color .25s ease; }
+.lever:hover .glyph{ transform: scale(1.12); color: var(--patina-light); }
 .lever .word{ font-weight:600; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; }
 .lever .sub{ font-family:'Cormorant Garamond', serif; font-style: italic; font-size: 13px; color: var(--text-soft); }
 
@@ -107,7 +124,7 @@ body{
   font-size: 19px;
   letter-spacing: 2px;
   color: #23180a;
-  animation: counterspin 44s linear infinite;   /* ← вот это важно */
+  animation: counterspin 44s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes counterspin { to { transform: rotate(-360deg); } }
@@ -142,9 +159,14 @@ body{
   font-family:'IBM Plex Mono', monospace; font-weight:600; font-size: 12px; letter-spacing: 1px;
   background: transparent; border: 1.5px solid var(--line); border-radius: 3px;
   padding: 9px 12px; color: var(--text); cursor:pointer;
-  transition: border-color .15s ease, color .15s ease; flex:none;
+  transition: all .2s ease; flex:none;
 }
-.back-btn:hover{ border-color: var(--patina-light); color: var(--patina-light); }
+.back-btn:hover{
+  border-color: var(--patina-light);
+  color: var(--patina-light);
+  background: rgba(95,148,132,0.08);
+  transform: translateX(-3px);
+}
 .drawer-top h2{ font-family:'Special Elite', monospace; font-size: clamp(20px, 4vw, 27px); letter-spacing: 2px; color: var(--text); }
 .drawer-top .tag{
   margin-left:auto; font-size: 10.5px; letter-spacing: 1.5px; font-weight:700; text-transform:uppercase;
@@ -159,7 +181,7 @@ body{
 .step-label .num{ color: var(--brass-light); }
 
 textarea, input[type="password"], input[type="text"]{
-  width:100%; 
+  width:100%;
   background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
   padding: 16px; font-size: 16px; line-height: 1.75; color: var(--text);
   font-family: 'IBM Plex Mono', monospace;
@@ -187,11 +209,25 @@ textarea[readonly]{ background: var(--panel-2); color: var(--text); }
 .primary-btn{
   font-family:'IBM Plex Mono', monospace; font-weight:700; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
   padding: 13px 34px; background: var(--patina); color: #0c1512; border: none; border-radius: 3px;
-  cursor:pointer; transition: background .15s ease, transform .1s ease;
+  cursor:pointer; transition: all .22s cubic-bezier(.22,1,.36,1);
   display:inline-flex; align-items:center; gap:10px;
+  position: relative; overflow: hidden;
 }
-.primary-btn:hover{ background: var(--patina-light); }
-.primary-btn:active{ transform: scale(0.97); }
+.primary-btn::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transform: translateX(-100%);
+  transition: transform .5s ease;
+}
+.primary-btn:hover{
+  background: var(--patina-light);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(95,148,132,0.35);
+}
+.primary-btn:hover::after{ transform: translateX(100%); }
+.primary-btn:active{ transform: translateY(0) scale(0.97); }
 .primary-btn .arrow{ font-size: 15px; }
 
 .row{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 14px; align-items:center; }
@@ -199,9 +235,14 @@ textarea[readonly]{ background: var(--panel-2); color: var(--text); }
 button.action, label.action{
   font-family:'IBM Plex Mono', monospace; font-weight:600; font-size: 12.5px; letter-spacing: .5px; text-transform: uppercase;
   padding: 10px 16px; background: transparent; color: var(--text); border: 1.5px solid var(--line); border-radius: 3px;
-  cursor:pointer; transition: border-color .15s ease, color .15s ease; display:inline-flex; align-items:center; gap:6px;
+  cursor:pointer; transition: all .2s ease; display:inline-flex; align-items:center; gap:6px;
 }
-button.action:hover, label.action:hover{ border-color: var(--brass-light); color: var(--brass-light); }
+button.action:hover, label.action:hover{
+  border-color: var(--brass-light);
+  color: var(--brass-light);
+  background: rgba(171,135,82,0.06);
+  transform: translateY(-1px);
+}
 button.action:active{ transform: scale(0.97); }
 
 .file-field{
@@ -231,13 +272,16 @@ input[type="file"]{ display:none; }
   text-align:center;
   cursor:pointer;
   background: var(--panel);
-  transition: border-color .15s ease, background .15s ease;
+  transition: all .25s ease;
 }
 .dropzone:hover, .dropzone.hover{
   border-color: var(--patina-light);
   background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px rgba(95,148,132,0.15);
+  transform: scale(1.01);
 }
-.dropzone .dz-icon{ font-size: 22px; color: var(--brass-light); margin-bottom: 8px; }
+.dropzone .dz-icon{ font-size: 22px; color: var(--brass-light); margin-bottom: 8px; transition: transform .25s ease, color .25s ease; }
+.dropzone:hover .dz-icon{ transform: scale(1.15); color: var(--patina-light); }
 .dropzone .dz-main{ font-family:'IBM Plex Mono', monospace; font-size: 13px; font-weight:600; letter-spacing: .3px; color: var(--text); }
 .dropzone .dz-sub{ font-family:'Cormorant Garamond', serif; font-style: italic; font-size: 13px; color: var(--text-soft); margin-top: 4px; }
 .dropzone .dz-file{ margin-top: 10px; font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--patina-light); font-weight:600; min-height: 16px; }
@@ -253,6 +297,88 @@ input[type="file"]{ display:none; }
 .status{ font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--warn); font-weight:600; letter-spacing: .3px; min-height: 16px; margin-top: 8px; }
 .status.ok{ color: var(--patina-light); }
 
+/* ================= CUSTOM MODAL ================= */
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(8,10,14,0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .28s ease, visibility .28s ease;
+}
+.modal-overlay.show{
+  opacity: 1;
+  visibility: visible;
+}
+.modal{
+  width: 90%;
+  max-width: 420px;
+  background: var(--panel);
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  padding: 28px 26px 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  transform: translateY(12px) scale(0.97);
+  transition: transform .28s cubic-bezier(.22,1,.36,1);
+}
+.modal-overlay.show .modal{
+  transform: translateY(0) scale(1);
+}
+.modal-title{
+  font-family: 'Special Elite', monospace;
+  font-size: 20px;
+  letter-spacing: 1.5px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.modal-text{
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--text-soft);
+  margin-bottom: 26px;
+}
+.modal-actions{
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.modal-btn{
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 11px 18px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.modal-btn.cancel{
+  background: transparent;
+  border: 1.5px solid var(--line);
+  color: var(--text);
+}
+.modal-btn.cancel:hover{
+  border-color: var(--brass-light);
+  color: var(--brass-light);
+}
+.modal-btn.confirm{
+  background: var(--patina);
+  border: none;
+  color: #0c1512;
+}
+.modal-btn.confirm:hover{
+  background: var(--patina-light);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 600px){
   .console{ flex-direction: column; gap: 18px; }
   .lever{ width: 180px; }
@@ -265,8 +391,8 @@ input[type="file"]{ display:none; }
   <!-- START SCREEN -->
   <div id="screen-start">
     <div class="masthead">
-      <h1>YOZ<span class="em">—</span>MESSAGE™</h1>
-      <p>Личный шифр. Сообщение читает только тот, кто знает пароль.</p>
+      <h1>YOZ<span class="em">—</span>MESSAGE</h1>
+      <p>Переводите ваши сообщения на непонятный шифр.</p>
     </div>
 
     <div class="console">
@@ -303,9 +429,9 @@ input[type="file"]{ display:none; }
       </div>
 
       <div class="step">
-        <div class="step-label"><span class="num">02</span> Пароль (который знаете только вы вдвоём)</div>
+        <div class="step-label"><span class="num">02</span> Пароль (который знаете вы и получатель)</div>
         <input type="password" id="pass-encode" placeholder="Например: день рождения, кличка, любимая фраза">
-        <div class="hint">Не отправляйте этот пароль в том же чате, где лежит код</div>
+        <div class="hint">Собеседник тоже должен знать этот пароль.</div>
       </div>
 
       <div class="primary-row">
@@ -364,7 +490,7 @@ input[type="file"]{ display:none; }
 
       <div class="step">
         <div class="step-label"><span class="num">02</span> Пароль</div>
-        <input type="password" id="pass-decode" placeholder="Тот же пароль, что использовал отправитель">
+        <input type="password" id="pass-decode" placeholder="Введите пароль.">
       </div>
 
       <div class="primary-row">
@@ -382,6 +508,21 @@ input[type="file"]{ display:none; }
     </div>
   </div>
 
+</div>
+
+<!-- CUSTOM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-title">Подтверждение</div>
+    <div class="modal-text">
+      Вы уверены, что ваш собеседник знает этот пароль?<br>
+      Если нет — он не сможет прочитать сообщение.
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="modal-cancel">Отмена</button>
+      <button class="modal-btn confirm" id="modal-confirm">Да, продолжить</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -426,7 +567,6 @@ function fontForText(text){
   }
   return DEFAULT_FONT;
 }
-
 function applyScriptFont(el){
   el.style.fontFamily = fontForText(el.value) || DEFAULT_FONT;
 }
@@ -441,6 +581,40 @@ async function callWorker(action, text, password) {
   const data = await res.json();
   if (data.error) throw new Error(data.error);
   return data.result;
+}
+
+// ---------- CUSTOM CONFIRM MODAL ----------
+const modal = document.getElementById('confirm-modal');
+const modalConfirmBtn = document.getElementById('modal-confirm');
+const modalCancelBtn = document.getElementById('modal-cancel');
+
+function showConfirm() {
+  return new Promise((resolve) => {
+    modal.classList.add('show');
+
+    const onConfirm = () => {
+      cleanup();
+      resolve(true);
+    };
+    const onCancel = () => {
+      cleanup();
+      resolve(false);
+    };
+    const onOverlay = (e) => {
+      if (e.target === modal) onCancel();
+    };
+
+    function cleanup() {
+      modal.classList.remove('show');
+      modalConfirmBtn.removeEventListener('click', onConfirm);
+      modalCancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onOverlay);
+    }
+
+    modalConfirmBtn.addEventListener('click', onConfirm);
+    modalCancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onOverlay);
+  });
 }
 
 // ---------- ENCODE ----------
@@ -467,7 +641,7 @@ async function doTranslate(){
     return;
   }
 
-  const sure = confirm('Вы уверены, что ваш собеседник знает этот пароль?\n\nЕсли нет — он не сможет прочитать сообщение.');
+  const sure = await showConfirm();
   if(!sure) return;
 
   statusEncode.className = 'status';
