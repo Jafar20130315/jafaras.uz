@@ -41,6 +41,58 @@ body{
 
 .stage{ position: fixed; inset: 0; }
 
+/* ================= LOGO ================= */
+.logo{
+  position: fixed;
+  top: 22px;
+  left: 22px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity .25s ease, transform .25s ease;
+}
+.logo:hover{ opacity: 1; transform: translateY(-1px); }
+.logo:active{ transform: translateY(0) scale(0.96); }
+.logo:focus-visible{ outline: 2px solid var(--patina-light); outline-offset: 6px; border-radius: 10px; }
+.logo img{
+  height: 64px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+/* logo only belongs on the start screen — hidden the moment a drawer opens */
+.logo.logo-hidden{
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+/* colorful burst that appears on click instead of navigating anywhere */
+.burst-dot{
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999;
+  left: 0; top: 0;
+  transform: translate(-50%,-50%) scale(0.4);
+  opacity: 1;
+  animation-name: burstFly;
+  animation-timing-function: cubic-bezier(.17,.67,.32,1.4);
+  animation-fill-mode: forwards;
+  box-shadow: 0 0 6px rgba(0,0,0,0.25);
+}
+@keyframes burstFly{
+  0%{ transform: translate(-50%,-50%) scale(0.4); opacity: 1; }
+  65%{ opacity: 1; }
+  100%{ transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity: 0; }
+}
+
 /* ================= START SCREEN ================= */
 #screen-start{
   position:absolute; inset:0;
@@ -231,6 +283,8 @@ textarea[readonly]{ background: var(--panel-2); color: var(--text); }
 .primary-btn:hover::after{ transform: translateX(100%); }
 .primary-btn:active{ transform: translateY(0) scale(0.97); }
 .primary-btn .arrow{ font-size: 15px; }
+.primary-btn:disabled{ opacity: .55; cursor: default; transform:none; box-shadow:none; }
+.primary-btn:disabled:hover{ background: var(--patina); }
 
 .row{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 14px; align-items:center; }
 
@@ -282,7 +336,11 @@ input[type="file"]{ display:none; }
   box-shadow: inset 0 0 0 1px rgba(95,148,132,0.15);
   transform: scale(1.01);
 }
-.dropzone .dz-icon{ font-size: 22px; color: var(--brass-light); margin-bottom: 8px; transition: transform .25s ease, color .25s ease; }
+.dropzone .dz-icon{
+  display:flex; justify-content:center; margin-bottom: 8px;
+  color: var(--brass-light);
+  transition: transform .25s ease, color .25s ease;
+}
 .dropzone:hover .dz-icon{ transform: scale(1.15); color: var(--patina-light); }
 .dropzone .dz-main{ font-family:'IBM Plex Mono', monospace; font-size: 13px; font-weight:600; letter-spacing: .3px; color: var(--text); }
 .dropzone .dz-sub{ font-family:'Cormorant Garamond', serif; font-style: italic; font-size: 13px; color: var(--text-soft); margin-top: 4px; }
@@ -385,37 +443,15 @@ input[type="file"]{ display:none; }
   .console{ flex-direction: column; gap: 18px; }
   .lever{ width: 180px; }
 }
-  .logo {
-  position: fixed;
-  top: 22px;
-  left: 22px;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  opacity: 0.85;
-  transition: opacity .25s ease, transform .25s ease;
-}
-
-.logo:hover {
-  opacity: 1;
-  transform: translateY(-1px);
-}
-
-.logo img {
-  height: 64px;          /* регулируй размер */
-  width: auto;
-  display: block;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
-}
 </style>
 </head>
 <body>
 <div class="stage">
-<a href="https://jafaras.uz" class="logo" title="jafaras.uz">
+
+<button type="button" class="logo" id="logo-btn" title="YOZ" onclick="logoBurst(event)">
   <img src="/logo.png" alt="YOZ">
-</a>
+</button>
+
   <!-- START SCREEN -->
   <div id="screen-start">
     <div class="masthead">
@@ -463,7 +499,7 @@ input[type="file"]{ display:none; }
       </div>
 
       <div class="primary-row">
-        <button class="primary-btn" onclick="doTranslate()"><span>Перевести</span><span class="arrow">↓</span></button>
+        <button class="primary-btn" id="btn-translate" onclick="doTranslate()"><span>Перевести</span><span class="arrow">↓</span></button>
       </div>
 
       <div class="step result-step" id="step-out-encode">
@@ -505,7 +541,13 @@ input[type="file"]{ display:none; }
       <div class="step">
         <div class="step-label"><span class="num">01</span> Код YOZ</div>
         <div class="dropzone" id="dropzone" tabindex="0">
-          <div class="dz-icon">📁</div>
+          <div class="dz-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v12"/>
+              <path d="M7 8l5-5 5 5"/>
+              <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+            </svg>
+          </div>
           <div class="dz-main">Перетащите файл .yoz сюда</div>
           <div class="dz-sub">или нажмите, чтобы выбрать</div>
           <div class="dz-file" id="file-name"></div>
@@ -522,7 +564,7 @@ input[type="file"]{ display:none; }
       </div>
 
       <div class="primary-row">
-        <button class="primary-btn" onclick="doDecode()"><span>Прочитать</span><span class="arrow">↓</span></button>
+        <button class="primary-btn" id="btn-decode" onclick="doDecode()"><span>Прочитать</span><span class="arrow">↓</span></button>
       </div>
 
       <div class="step result-step" id="step-out-decode">
@@ -554,16 +596,15 @@ input[type="file"]{ display:none; }
 </div>
 
 <script>
-// ---------- НАСТРОЙКИ ----------
-const WORKER_URL = "https://api.yoz.jafaras.uz";
-
 // ---------- NAVIGATION ----------
 const screenStart = document.getElementById('screen-start');
 const drawerEncode = document.getElementById('drawer-encode');
 const drawerDecode = document.getElementById('drawer-decode');
+const logoBtn = document.getElementById('logo-btn');
 
 function openDrawer(which){
   screenStart.classList.add('dimmed');
+  logoBtn.classList.add('logo-hidden'); // логотип показывается только на главной
   if(which === 'encode'){ drawerEncode.classList.add('open'); }
   if(which === 'decode'){ drawerDecode.classList.add('open'); }
 }
@@ -571,6 +612,33 @@ function closeDrawers(){
   drawerEncode.classList.remove('open');
   drawerDecode.classList.remove('open');
   screenStart.classList.remove('dimmed');
+  logoBtn.classList.remove('logo-hidden');
+}
+
+// ---------- LOGO: colorful burst instead of navigation ----------
+function logoBurst(e){
+  const rect = e.currentTarget.getBoundingClientRect();
+  const originX = rect.left + rect.width / 2;
+  const originY = rect.top + rect.height / 2;
+  const colors = ['#e0546c', '#e8a33d', '#e8d23d', '#6fbf73', '#4fb0c6', '#7c83e8', '#c66fd6'];
+  const count = 16;
+  for(let i = 0; i < count; i++){
+    const dot = document.createElement('span');
+    dot.className = 'burst-dot';
+    const size = 6 + Math.random() * 10;
+    dot.style.width = size + 'px';
+    dot.style.height = size + 'px';
+    dot.style.background = colors[Math.floor(Math.random() * colors.length)];
+    dot.style.left = originX + 'px';
+    dot.style.top = originY + 'px';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 40 + Math.random() * 80;
+    dot.style.setProperty('--dx', (Math.cos(angle) * dist) + 'px');
+    dot.style.setProperty('--dy', (Math.sin(angle) * dist) + 'px');
+    dot.style.animationDuration = (0.6 + Math.random() * 0.5) + 's';
+    document.body.appendChild(dot);
+    dot.addEventListener('animationend', () => dot.remove());
+  }
 }
 
 // ---------- SCRIPT-AWARE TYPEFACES ----------
@@ -599,15 +667,24 @@ function applyScriptFont(el){
   el.style.fontFamily = fontForText(el.value) || DEFAULT_FONT;
 }
 
-// ---------- WORKER CALL ----------
-async function callWorker(action, text, password) {
-  const res = await fetch(WORKER_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, text, password })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
+// ---------- REAL ENCRYPTION VIA YOZ WORKER (AES-GCM, PBKDF2) ----------
+const WORKER_URL = "https://api.yoz.jafaras.uz";
+
+async function callWorker(action, text, password){
+  let res;
+  try{
+    res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, text, password })
+    });
+  } catch(networkErr){
+    throw new Error('Не удалось связаться с сервером. Проверьте интернет-соединение.');
+  }
+  let data;
+  try{ data = await res.json(); }
+  catch(parseErr){ throw new Error('Сервер вернул некорректный ответ (' + res.status + ').'); }
+  if(!res.ok || data.error){ throw new Error(data.error || ('Ошибка сервера (' + res.status + ').')); }
   return data.result;
 }
 
@@ -620,17 +697,9 @@ function showConfirm() {
   return new Promise((resolve) => {
     modal.classList.add('show');
 
-    const onConfirm = () => {
-      cleanup();
-      resolve(true);
-    };
-    const onCancel = () => {
-      cleanup();
-      resolve(false);
-    };
-    const onOverlay = (e) => {
-      if (e.target === modal) onCancel();
-    };
+    const onConfirm = () => { cleanup(); resolve(true); };
+    const onCancel = () => { cleanup(); resolve(false); };
+    const onOverlay = (e) => { if (e.target === modal) onCancel(); };
 
     function cleanup() {
       modal.classList.remove('show');
@@ -672,20 +741,24 @@ async function doTranslate(){
   const sure = await showConfirm();
   if(!sure) return;
 
+  const btn = document.getElementById('btn-translate');
+  btn.disabled = true;
   statusEncode.className = 'status';
-  statusEncode.textContent = 'Шифрую...';
+  statusEncode.textContent = 'Шифрую…';
 
-  try {
+  try{
     const result = await callWorker('encode', text, password);
     outCode.value = result;
     stepOutEncode.classList.remove('revealed');
     void stepOutEncode.offsetWidth;
     stepOutEncode.classList.add('revealed');
     statusEncode.className = 'status ok';
-    statusEncode.textContent = 'Готово. Код защищён паролем.';
-  } catch(e) {
+    statusEncode.textContent = 'Готово. Сообщение зашифровано.';
+  } catch(e){
     statusEncode.className = 'status';
-    statusEncode.textContent = 'Ошибка: ' + e.message;
+    statusEncode.textContent = e.message;
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -734,10 +807,12 @@ async function doDecode(){
     return;
   }
 
+  const btn = document.getElementById('btn-decode');
+  btn.disabled = true;
   statusDecode.className = 'status';
-  statusDecode.textContent = 'Расшифровываю...';
+  statusDecode.textContent = 'Расшифровываю…';
 
-  try {
+  try{
     const result = await callWorker('decode', code, password);
     outText.value = result;
     outText.style.fontFamily = fontForText(result);
@@ -746,9 +821,11 @@ async function doDecode(){
     stepOutDecode.classList.add('revealed');
     statusDecode.className = 'status ok';
     statusDecode.textContent = 'Готово. Сообщение расшифровано.';
-  } catch(e) {
+  } catch(e){
     statusDecode.className = 'status';
     statusDecode.textContent = e.message;
+  } finally {
+    btn.disabled = false;
   }
 }
 
