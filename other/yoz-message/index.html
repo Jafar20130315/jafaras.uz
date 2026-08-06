@@ -285,6 +285,10 @@ textarea[readonly]{ background: var(--panel-2); color: var(--text); }
 .primary-btn .arrow{ font-size: 15px; }
 .primary-btn:disabled{ opacity: .55; cursor: default; transform:none; box-shadow:none; }
 .primary-btn:disabled:hover{ background: var(--patina); }
+.spinner{ width:14px; height:14px; border-radius:50%; border:2px solid rgba(0,0,0,.25); border-top-color: var(--bg); animation: spin .7s linear infinite; display:none; }
+.primary-btn.loading .spinner{ display:inline-block; }
+.primary-btn.loading .arrow{ display:none; }
+@keyframes spin{ to{ transform: rotate(360deg); } }
 
 .row{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 14px; align-items:center; }
 
@@ -499,7 +503,7 @@ input[type="file"]{ display:none; }
       </div>
 
       <div class="primary-row">
-        <button class="primary-btn" id="btn-translate" onclick="doTranslate()"><span>Перевести</span><span class="arrow">↓</span></button>
+        <button class="primary-btn" id="btn-translate" onclick="doTranslate()"><span>Перевести</span><span class="arrow">↓</span><span class="spinner"></span></button>
       </div>
 
       <div class="step result-step" id="step-out-encode">
@@ -564,7 +568,7 @@ input[type="file"]{ display:none; }
       </div>
 
       <div class="primary-row">
-        <button class="primary-btn" id="btn-decode" onclick="doDecode()"><span>Прочитать</span><span class="arrow">↓</span></button>
+        <button class="primary-btn" id="btn-decode" onclick="doDecode()"><span>Прочитать</span><span class="arrow">↓</span><span class="spinner"></span></button>
       </div>
 
       <div class="step result-step" id="step-out-decode">
@@ -742,7 +746,7 @@ async function doTranslate(){
   if(!sure) return;
 
   const btn = document.getElementById('btn-translate');
-  btn.disabled = true;
+  btn.disabled = true; btn.classList.add('loading');
   statusEncode.className = 'status';
   statusEncode.textContent = 'Шифрую…';
 
@@ -756,9 +760,9 @@ async function doTranslate(){
     statusEncode.textContent = 'Готово. Сообщение зашифровано.';
   } catch(e){
     statusEncode.className = 'status';
-    statusEncode.textContent = e.message;
+    statusEncode.textContent = e.message || 'Непредвиденная ошибка.';
   } finally {
-    btn.disabled = false;
+    btn.disabled = false; btn.classList.remove('loading');
   }
 }
 
@@ -808,7 +812,7 @@ async function doDecode(){
   }
 
   const btn = document.getElementById('btn-decode');
-  btn.disabled = true;
+  btn.disabled = true; btn.classList.add('loading');
   statusDecode.className = 'status';
   statusDecode.textContent = 'Расшифровываю…';
 
@@ -823,9 +827,9 @@ async function doDecode(){
     statusDecode.textContent = 'Готово. Сообщение расшифровано.';
   } catch(e){
     statusDecode.className = 'status';
-    statusDecode.textContent = e.message;
+    statusDecode.textContent = e.message || 'Непредвиденная ошибка.';
   } finally {
-    btn.disabled = false;
+    btn.disabled = false; btn.classList.remove('loading');
   }
 }
 
@@ -864,6 +868,14 @@ dropzone.addEventListener('drop', (e) => {
   dropzone.classList.remove('hover');
   const file = e.dataTransfer.files[0];
   if(file) readFile(file);
+});
+
+// ---------- GLOBAL ERROR SAFETY NET ----------
+window.addEventListener('error', () => {
+  document.querySelectorAll('.status').forEach(s => { if(!s.textContent){ s.className='status'; s.textContent='Что-то пошло не так.'; } });
+});
+window.addEventListener('unhandledrejection', () => {
+  document.querySelectorAll('.status').forEach(s => { if(!s.textContent){ s.className='status'; s.textContent='Что-то пошло не так.'; } });
 });
 
 // ---------- COPY ----------
