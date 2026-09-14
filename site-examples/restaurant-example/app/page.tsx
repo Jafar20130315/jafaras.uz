@@ -3,21 +3,21 @@
 import { useEffect, useRef, useState } from 'react'
 
 const dishes = [
-  { name: 'Plov Lider', price: '45 000 so\'m', image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1200&q=85' },
-  { name: 'Qozon Kabob', price: '65 000 so\'m', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85' },
-  { name: 'Samarqand Lag\'mon', price: '38 000 so\'m', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=1200&q=85' },
-  { name: 'Manti', price: '32 000 so\'m', image: 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=1200&q=85' },
-  { name: 'Norin', price: '40 000 so\'m', image: 'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=85' },
-  { name: 'Shashlik', price: '42 000 so\'m', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85' },
-  { name: 'Achichuk', price: '22 000 so\'m', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85' },
-  { name: 'Choy va Non', price: '18 000 so\'m', image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=1200&q=85' },
+  { name: 'Osh', price: '45 000 so\'m', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOQ24zs5fKHWIW52L3L7DyV46WC4L2QBu7VJHfXA384g&s=10' },
+  { name: 'Qozon Kabob', price: '65 000 so\'m', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2jZrGb49K93r7VoI7U0KRRSkt0BTrjXvhpqVkbYWZ4Q&s=10' },
+  { name: 'Sho\'rva', price: '38 000 so\'m', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCuINZDM2xYvzXYowRP1HfhEdqFDaF7gJGawkjULdx4Q&s=10' },
+  { name: 'Manti', price: '32 000 so\'m', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFCAtIr5WoFs45GHtbPEtiTHlMxyw_XLvblmfIEd078A&s=10' },
+  { name: 'Norin', price: '40 000 so\'m', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLVlEGmRDMzZ0P6uQZ1aKhvuuMou8CRP_dYEVfhMUfDQ&s=10' },
+  { name: 'Shashlik', price: '42 000 so\'m', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlvWgbheyVhkAM_rVkUYSmmIfNpocoLJo0Rgo3nWDlnA&s=10' },
+  { name: 'Somsa', price: '22 000 so\'m', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT724rbBYKR8-qa3wU4cqf3MJRYmLIshGIjIHYgbD_6fQ&s=10' },
+  { name: 'Choy va Non', price: '18 000 so\'m', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1lbbaD7z2d4NgktuJ34BRCkfwSlh0ZuLu-DslHrFpnQ&s=10' },
 ]
 
 const gallery = [
-  'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=85',
-  'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=85',
-  'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=1200&q=85',
-  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=85',
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyEJNq1NdYeb7PUUvvFaKBSheotntb5I2U_H_o7MOzyg&s=10',
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3ipZE5FmPdw4oHYRbXscD5WBzLdJRcbghJpIgn8TlGg&s=10',
+  'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmvYJ5A5xAv8eGzd26LAmqs3Z5M6ai8LeZv1BKYM2HjFsE4FY8nLbtryEcRp2uF6ZGAkN1hL2At99HpDC_8zl65Wl5xWm0UQ7nk1pQc-8e5oOqQgcnrOCmlruEZtsOXsMfelptF=w408-h306-k-no',
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkQO835mCRxHuhbkJv4cFBLMpMXsX1sHunl_hMApZ1Wg&s=10',
 ]
 
 export default function Page() {
@@ -34,7 +34,7 @@ export default function Page() {
   return (
     <main>
       <header className={`topbar ${scrolled ? 'topbar-visible' : ''}`}>
-        <a href="#top" className="brand">Lider<span>.</span></a>
+        <a href="#top" className="brand">Lider</a>
         <a href="tel:+998712000000" className="call-button">Bog&apos;lanish <span aria-hidden="true">↗</span></a>
       </header>
 
@@ -97,14 +97,14 @@ export default function Page() {
 
       <section className="about-section section-shell" aria-labelledby="about-title">
         <div className="section-label"><span>02</span><h2 id="about-title">Lider haqida</h2><span className="label-line" /></div>
-        <div className="about-content"><p className="about-lead">Lider — bu shunchaki restoran emas. Bu oilaviy dasturxonning issiqligi, tandirdan chiqqan nonning hidi va unutilmas suhbatlar uchun yaratilgan makon.</p><p className="about-detail">Biz har bir taomga o&apos;zbek oshxonasining boy tarixini va bugungi kunning nozik didini singdiramiz. Har tashrifingizda o&apos;zingizni uydagidek his qilishingiz — bizning eng katta yutug&apos;imiz.</p></div>
+        <div className="about-content"><p className="about-lead">Navoiy shahridagi eng ajoyib restoran. Arzon narxlar va juda ham mazali ovqatlar.</p><p className="about-detail">Biz har bir taomga o&apos;zbek oshxonasining boy tarixini va bugungi kunning nozik didini singdiramiz. Har tashrifingizda o&apos;zingizni uydagidek his qilishingiz — bizning eng katta yutug&apos;imiz.</p></div>
       </section>
 
       <section className="contact-section section-shell" aria-labelledby="contact-title">
-        <div className="contact-card"><div><p className="eyebrow">03 · Tashrif buyuring</p><h2 id="contact-title">Sizni kutamiz.</h2><p className="contact-copy">Har kuni 10:00 — 23:00<br />Toshkent shahri, Amir Temur ko&apos;chasi 108</p></div><a className="phone-link" href="tel:+998712000000"><span>+998 71 200 00 00</span><b aria-hidden="true">↗</b></a></div>
+        <div className="contact-card"><div><p className="eyebrow">03 · Tashrif buyuring</p><h2 id="contact-title">Sizni kutamiz</h2><p className="contact-copy">Har kuni 10:00 — 23:00<br />Navoiy shahri, G&apos;alaba ko&apos;chasi</p></div><a className="phone-link" href="tel:+998942500999"><span>+998 94 250 09 99</span><b aria-hidden="true">↗</b></a></div>
       </section>
 
-      <footer className="footer section-shell"><a href="#top" className="brand">Lider<span>.</span></a><p>2026 — Lider</p><a href="#top" className="back-top">Yuqoriga ↑</a></footer>
+      <footer className="footer section-shell"><a href="#top" className="brand">Lider</a><p>2026 — Lider</p><a href="#top" className="back-top">Yuqoriga ↑</a></footer>
     </main>
   )
 }
