@@ -123,7 +123,7 @@ export default function Page() {
       </section>
 
       <section className="location-section section-shell reveal" data-reveal aria-labelledby="location-title">
-        <div className="section-label"><span>04</span><h2 id="location-title">Biznig manzilimiz</h2><span className="label-line" /></div>
+        <div className="section-label"><span>04</span><h2 id="location-title">Bizning manzilimiz</h2><span className="label-line" /></div>
         <div className="location-layout">
           <div className="location-copy">
             <p className="eyebrow">Navoiydagi manzilimiz</p>
