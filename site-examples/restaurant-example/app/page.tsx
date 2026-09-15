@@ -123,13 +123,13 @@ export default function Page() {
       </section>
 
       <section className="location-section section-shell reveal" data-reveal aria-labelledby="location-title">
-        <div className="section-label"><span>04</span><h2 id="location-title">Bizni toping</h2><span className="label-line" /></div>
+        <div className="section-label"><span>04</span><h2 id="location-title">Biznig manzilimiz</h2><span className="label-line" /></div>
         <div className="location-layout">
           <div className="location-copy">
             <p className="eyebrow">Navoiydagi manzilimiz</p>
-            <h3>493J+H4<br />Navoiy, Uzbekistan</h3>
-            <p>Bizni xaritada toping va Liderga tashrif buyuring. Sizni har kuni 10:00 dan 23:00 gacha kutamiz.</p>
-            <a className="map-link" href="https://www.google.com/maps/search/?api=1&query=493J%2BH4%2C%20Navoiy%2C%20Uzbekistan" target="_blank" rel="noreferrer">Google Maps&apos;da ochish <span aria-hidden="true">↗</span></a>
+            <h3>Navoiy shahar,<br />G'alaba ko'chasi</h3>
+            <p>Bizni xaritada toping va Lider'ga tashrif buyuring. Sizni har kuni 10:00 dan 23:00 gacha kutamiz.</p>
+            <a className="map-link" href="https://www.google.com/maps/search/?api=1&query=493J%2BH4%2C%20Navoiy%2C%20Uzbekistan" target="_blank" rel="noreferrer">Xaritalar&apos;da ochish <span aria-hidden="true">↗</span></a>
           </div>
           <div className="map-frame"><iframe title="Lider restorani joylashuvi" src="https://www.google.com/maps?q=493J%2BH4%2C%20Navoiy%2C%20Uzbekistan&output=embed" loading="lazy" referrerPolicy="no-referrer-when-downgrade" /></div>
         </div>
