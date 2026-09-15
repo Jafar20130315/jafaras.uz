@@ -23,6 +23,7 @@ const gallery = [
 export default function Page() {
   const [scrolled, setScrolled] = useState(false)
   const dishScrollerRef = useRef<HTMLDivElement>(null)
+  const pageRef = useRef<HTMLElement>(null)
   const rightDragRef = useRef({ active: false, startX: 0, startScrollLeft: 0 })
 
   useEffect(() => {
@@ -31,8 +32,25 @@ export default function Page() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    const revealItems = pageRef.current?.querySelectorAll<HTMLElement>('[data-reveal]')
+    if (!revealItems?.length) return
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible')
+          observer.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.12 })
+
+    revealItems.forEach((item) => observer.observe(item))
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <main>
+    <main ref={pageRef}>
       <header className={`topbar ${scrolled ? 'topbar-visible' : ''}`}>
         <a href="#top" className="brand">Lider</a>
         <a href="tel:+998712000000" className="call-button">Bog&apos;lanish <span aria-hidden="true">↗</span></a>
@@ -90,7 +108,7 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="gallery-section section-shell" aria-labelledby="gallery-title">
+      <section className="gallery-section section-shell reveal" data-reveal aria-labelledby="gallery-title">
         <div className="section-label"><span>01</span><h2 id="gallery-title">Bizning makon</h2><span className="label-line" /></div>
         <div className="gallery-grid">{gallery.map((image, index) => <img key={image} className={`gallery-image gallery-${index + 1}`} src={image} alt={`Lider restorani interyeri ${index + 1}`} draggable={false} />)}</div>
       </section>
@@ -102,6 +120,19 @@ export default function Page() {
 
       <section className="contact-section section-shell" aria-labelledby="contact-title">
         <div className="contact-card"><div><p className="eyebrow">03 · Tashrif buyuring</p><h2 id="contact-title">Sizni kutamiz</h2><p className="contact-copy">Har kuni 10:00 — 23:00<br />Navoiy shahri, G&apos;alaba ko&apos;chasi</p></div><a className="phone-link" href="tel:+998942500999"><span>+998 94 250 09 99</span><b aria-hidden="true">↗</b></a></div>
+      </section>
+
+      <section className="location-section section-shell reveal" data-reveal aria-labelledby="location-title">
+        <div className="section-label"><span>04</span><h2 id="location-title">Bizni toping</h2><span className="label-line" /></div>
+        <div className="location-layout">
+          <div className="location-copy">
+            <p className="eyebrow">Navoiydagi manzilimiz</p>
+            <h3>493J+H4<br />Navoiy, Uzbekistan</h3>
+            <p>Bizni xaritada toping va Liderga tashrif buyuring. Sizni har kuni 10:00 dan 23:00 gacha kutamiz.</p>
+            <a className="map-link" href="https://www.google.com/maps/search/?api=1&query=493J%2BH4%2C%20Navoiy%2C%20Uzbekistan" target="_blank" rel="noreferrer">Google Maps&apos;da ochish <span aria-hidden="true">↗</span></a>
+          </div>
+          <div className="map-frame"><iframe title="Lider restorani joylashuvi" src="https://www.google.com/maps?q=493J%2BH4%2C%20Navoiy%2C%20Uzbekistan&output=embed" loading="lazy" referrerPolicy="no-referrer-when-downgrade" /></div>
+        </div>
       </section>
 
       <footer className="footer section-shell"><a href="#top" className="brand">Lider</a><p>2026 — Lider</p><a href="#top" className="back-top">Yuqoriga ↑</a></footer>
