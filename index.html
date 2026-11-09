@@ -724,21 +724,6 @@
 
     <!-- Logic -->
     <script>
-    // 🔴 ТУМБЛЕР ТЕХРАБОТ: true — закрыть сайт, false — сайт работает
-    const isMaintenanceMode = true;
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const overlay = document.getElementById("maintenanceOverlay");
-      if (!overlay) return;
-      if (isMaintenanceMode) {
-        overlay.classList.add("active");
-        document.body.style.overflow = "hidden";
-        document.body.style.pointerEvents = "none";
-        overlay.style.pointerEvents = "auto";
-      } else {
-        overlay.remove();
-      }
-    });
       // === Preloader Logic ===
       const preloader = document.getElementById("preloader");
       const loaderBar = document.getElementById("loaderBar");
@@ -1115,6 +1100,21 @@
           card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
         });
       });
+      // 🔴 ТУМБЛЕР ТЕХРАБОТ: true — закрыть сайт, false — сайт работает
+    const isMaintenanceMode = true;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const overlay = document.getElementById("maintenanceOverlay");
+      if (!overlay) return;
+      if (isMaintenanceMode) {
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+        document.body.style.pointerEvents = "none";
+        overlay.style.pointerEvents = "auto";
+      } else {
+        overlay.remove();
+      }
+    });
     </script>
   </body>
 </html>
