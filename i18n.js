@@ -1,6 +1,5 @@
 // i18n.js
 // Global I18N object used by index.html
-import { transliterate } from './new-alphabet-transliterator.js';
 window.I18N = {
   ru: {
     lang_label: "Язык",
