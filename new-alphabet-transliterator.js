@@ -1,7 +1,4 @@
-
-export function transliterate(text) {
-   
-    (function() {
+(function() {
     'use strict';
 
     function convertUzbekText(text) {
@@ -69,5 +66,3 @@ export function transliterate(text) {
       applyNewAlphabet(document.body);
     }
   })();
-return result;
-}
